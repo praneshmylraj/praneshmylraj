@@ -86,6 +86,7 @@ class BootScene extends Phaser.Scene {
         };
 
         startBtn.on('pointerdown', launchGame);
+        this.input.on('pointerdown', launchGame);
         this.input.keyboard.on('keydown-SPACE', launchGame);
         this.input.keyboard.on('keydown-ENTER', launchGame);
     }

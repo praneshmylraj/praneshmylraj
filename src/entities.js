@@ -77,17 +77,21 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         }
 
         // Controls input checks
-        const leftDown = cursors.left.isDown || keys.A.isDown || (window.virtualInput && window.virtualInput.left);
-        const rightDown = cursors.right.isDown || keys.right.isDown || keys.D.isDown || (window.virtualInput && window.virtualInput.right);
-        const jumpPressed = Phaser.Input.Keyboard.JustDown(cursors.up) || 
-                            Phaser.Input.Keyboard.JustDown(keys.W) || 
-                            Phaser.Input.Keyboard.JustDown(keys.SPACE) || 
-                            (window.virtualInput && window.virtualInput.consumeJump());
-        const dashPressed = Phaser.Input.Keyboard.JustDown(keys.SHIFT) || 
-                            Phaser.Input.Keyboard.JustDown(keys.J) || 
-                            Phaser.Input.Keyboard.JustDown(keys.X) || 
-                            (window.virtualInput && window.virtualInput.consumeDash());
-        const downDown = cursors.down.isDown || keys.S.isDown || (window.virtualInput && window.virtualInput.down);
+        const leftDown = Boolean(cursors?.left?.isDown || keys?.A?.isDown || window.virtualInput?.left);
+        const rightDown = Boolean(cursors?.right?.isDown || keys?.D?.isDown || window.virtualInput?.right);
+        const jumpPressed = Boolean(
+            (cursors?.up && Phaser.Input.Keyboard.JustDown(cursors.up)) ||
+            (keys?.W && Phaser.Input.Keyboard.JustDown(keys.W)) ||
+            (keys?.SPACE && Phaser.Input.Keyboard.JustDown(keys.SPACE)) ||
+            window.virtualInput?.consumeJump()
+        );
+        const dashPressed = Boolean(
+            (keys?.SHIFT && Phaser.Input.Keyboard.JustDown(keys.SHIFT)) ||
+            (keys?.J && Phaser.Input.Keyboard.JustDown(keys.J)) ||
+            (keys?.X && Phaser.Input.Keyboard.JustDown(keys.X)) ||
+            window.virtualInput?.consumeDash()
+        );
+        const downDown = Boolean(cursors?.down?.isDown || keys?.S?.isDown || window.virtualInput?.down);
 
         // Reset double jump on ground
         if (onGround) {
