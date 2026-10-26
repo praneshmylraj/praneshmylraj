@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pranesh's World Runner // Odyssey Through the Stack</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Phaser 3 Engine (Local with fallback to CDN) -->
+    <script src="lib/phaser.min.js"></script>
+    <script>
+        if (typeof Phaser === 'undefined') {
+            document.write('<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"><\/script>');
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Cyber Header Navigation -->
+    <header class="cyber-header">
+        <div class="brand-wrapper">
+            <span class="brand-badge">SYS::ACTIVE</span>
+            <h1 class="brand-title">PRANESH<span>.RUN</span></h1>
+        </div>
+
+        <div class="header-controls">
+            <button id="btn-audio" class="cyber-btn" title="Toggle Sound [M]">
+                <span id="audio-icon">🔊</span> AUDIO
+            </button>
+            <button id="btn-crt" class="cyber-btn" title="Toggle CRT Scanlines">
+                <span>📺</span> CRT FX
+            </button>
+            <button id="btn-fullscreen" class="cyber-btn" title="Toggle Fullscreen">
+                <span>⛶</span> FULLSCREEN
+            </button>
+            <a href="https://github.com/praneshmylraj" target="_blank" rel="noopener noreferrer" class="cyber-btn">
+                <span>⚡</span> GITHUB
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Game Canvas Container -->
+    <main class="game-wrapper">
+        <div id="game-container">
+            <div id="crt-overlay" class="crt-overlay"></div>
+        </div>
+
+        <!-- Desktop Quick Guide -->
+        <div class="quick-instructions">
+            <span><span class="key-tag">A</span> <span class="key-tag">D</span> / <span class="key-tag">←</span> <span class="key-tag">→</span> RUN</span>
+            <span><span class="key-tag">SPACE</span> / <span class="key-tag">W</span> JUMP & DOUBLE JUMP</span>
+            <span><span class="key-tag">SHIFT</span> / <span class="key-tag">J</span> CYBER DASH</span>
+            <span><span class="key-tag">S</span> / <span class="key-tag">↓</span> SLIDE</span>
+            <span><span class="key-tag">E</span> INTERACT TERMINALS</span>
+            <span><span class="key-tag">R</span> RESPAWN</span>
+        </div>
+
+        <!-- Virtual Gamepad for Mobile & Touchscreens -->
+        <div id="virtual-controls" class="virtual-controls">
+            <div class="v-dpad">
+                <button id="v-left" class="v-btn">◀</button>
+                <button id="v-down" class="v-btn">▼</button>
+                <button id="v-right" class="v-btn">▶</button>
+            </div>
+            <div class="v-actions">
+                <button id="v-interact" class="v-btn" style="border-color: #fbbf24; color: #fbbf24;">E</button>
+                <button id="v-dash" class="v-btn v-btn-action">DASH</button>
+                <button id="v-jump" class="v-btn v-btn-action" style="border-color: #22c55e; color: #22c55e;">JUMP</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Profile Information Footer -->
+    <footer class="profile-footer">
+        <div>
+            <strong>Pranesh (@praneshmylraj)</strong> &bull; Systems, Operating Systems & Blockchains
+        </div>
+        <div>
+            Reach out: <a href="mailto:inboxpranesh@gmail.com">inboxpranesh@gmail.com</a>
+        </div>
+    </footer>
+
+    <!-- Global Virtual Input Tracker -->
+    <script>
+        window.virtualInput = {
+            left: false,
+            right: false,
+            down: false,
+            jumpQueued: false,
+            dashQueued: false,
+            consumeJump() {
+                if (this.jumpQueued) {
+                    this.jumpQueued = false;
+                    return true;
+                }
+                return false;
+            },
+            consumeDash() {
+                if (this.dashQueued) {
+                    this.dashQueued = false;
+                    return true;
+                }
+                return false;
+            }
+        };
+
+        // Virtual Touch Events
+        const bindButton = (id, onDown, onUp) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            const start = (e) => { e.preventDefault(); onDown(); };
+            const end = (e) => { e.preventDefault(); onUp(); };
+            btn.addEventListener('touchstart', start, { passive: false });
+            btn.addEventListener('touchend', end, { passive: false });
+            btn.addEventListener('mousedown', start);
+            btn.addEventListener('mouseup', end);
+            btn.addEventListener('mouseleave', end);
+        };
+
+        bindButton('v-left', () => window.virtualInput.left = true, () => window.virtualInput.left = false);
+        bindButton('v-right', () => window.virtualInput.right = true, () => window.virtualInput.right = false);
+        bindButton('v-down', () => window.virtualInput.down = true, () => window.virtualInput.down = false);
+        bindButton('v-jump', () => window.virtualInput.jumpQueued = true, () => {});
+        bindButton('v-dash', () => window.virtualInput.dashQueued = true, () => {});
+        bindButton('v-interact', () => {
+            const gameScene = window.game?.scene?.getScene('GameScene');
+            if (gameScene) gameScene.handleInteract();
+        }, () => {});
+
+        // UI Controls
+        const btnAudio = document.getElementById('btn-audio');
+        const audioIcon = document.getElementById('audio-icon');
+        btnAudio.addEventListener('click', () => {
+            if (window.soundEngine) {
+                const isMuted = window.soundEngine.toggleMute();
+                audioIcon.textContent = isMuted ? '🔇' : '🔊';
+                btnAudio.classList.toggle('active', isMuted);
+            }
+        });
+
+        const btnCrt = document.getElementById('btn-crt');
+        const crtOverlay = document.getElementById('crt-overlay');
+        btnCrt.addEventListener('click', () => {
+            crtOverlay.classList.toggle('disabled');
+            btnCrt.classList.toggle('active', !crtOverlay.classList.contains('disabled'));
+        });
+
+        const btnFullscreen = document.getElementById('btn-fullscreen');
+        btnFullscreen.addEventListener('click', () => {
+            const container = document.getElementById('game-container');
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen().catch(() => {});
+            }
+        });
+    </script>
+
+    <!-- Game Scripts -->
+    <script src="src/audio.js"></script>
+    <script src="src/sprites.js"></script>
+    <script src="src/entities.js"></script>
+    <script src="src/world.js"></script>
+    <script src="src/scenes/BootScene.js"></script>
+    <script src="src/scenes/GameScene.js"></script>
+    <script src="src/scenes/VictoryScene.js"></script>
+    <script src="src/game.js"></script>
+</body>
+</html>
