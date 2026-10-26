@@ -1,6 +1,6 @@
 /**
- * Scenic World Generator for Pranesh's Lo-Fi Cycling Journey
- * Builds a continuous, serene road lined with streetlamps, blossoming trees, and 7 career pavilions.
+ * World Generation for Sunset Lo-Fi Cycling Journey
+ * Beautiful scenery with telegraph poles, flowering trees, streetlamps, and 7 pavilions.
  */
 
 class WorldBuilder {
@@ -12,57 +12,75 @@ class WorldBuilder {
         const worldWidth = scene.worldWidth;
         const roadY = 460;
 
-        // 1. Continuous Smooth Road
+        // 1. Continuous Smooth Asphalt Road
         for (let x = 0; x < worldWidth; x += 64) {
             const tile = platforms.create(x, roadY, 'road_tile');
             tile.setOrigin(0, 0);
             tile.refreshBody();
         }
 
-        // 2. Street Lamps & Trees along the route
-        for (let x = 150; x < worldWidth - 200; x += 320) {
-            // Street lamp
-            const lamp = scene.add.sprite(x, roadY - 45, 'street_lamp');
+        // 2. Scenic Roadside Decor (Street Lamps, Trees, Telegraph Poles)
+        for (let x = 120; x < worldWidth - 300; x += 280) {
+            // Street lamp with warm light cone
+            const lamp = scene.add.sprite(x, roadY - 48, 'street_lamp');
             lamp.setOrigin(0.5, 0.5);
 
-            // Flowering tree every second lamp
-            if (x % 640 === 150) {
-                const tree = scene.add.sprite(x + 140, roadY - 45, 'lofi_tree');
+            // Telegraph pole every 3rd lamp
+            if (x % 840 === 120) {
+                const pole = scene.add.sprite(x + 110, roadY - 58, 'telegraph_pole');
+                pole.setOrigin(0.5, 0.5);
+                pole.setAlpha(0.85);
+            }
+
+            // Flowering sunset tree
+            if (x % 560 === 400) {
+                const tree = scene.add.sprite(x + 130, roadY - 50, 'lofi_tree');
                 tree.setOrigin(0.5, 0.5);
-                tree.setAlpha(0.9);
+                tree.setAlpha(0.92);
             }
         }
 
-        // 3. Career Milestone Pavilions
+        // 3. 7 Career Milestone Pavilions
         const stationPositions = [
-            600,   // 01: Profile & Contact
-            2200,  // 02: Senior SWE (VegaOS, 10K+ TPS, Bedrock AI)
-            4000,  // 03: SWE II (DevTools CLI, Device Lifecycle)
-            5800,  // 04: SWE I & Intern (DEX Bytecode, Streaming, Appstore)
-            7600,  // 05: Technical Arsenal
-            9400,  // 06: Education & Early Roots
-            11000  // 07: Let's Connect Lookout
+            700,    // 01: Profile & Contact
+            2600,   // 02: Senior SWE (VegaOS, 10K+ TPS, Bedrock AI)
+            4600,   // 03: SWE II (DevTools CLI, Device Lifecycle)
+            6600,   // 04: SWE I & Intern (DEX Bytecode, Streaming, Appstore)
+            8600,   // 05: Technical Arsenal
+            10600,  // 06: Education & Early Roots
+            12600   // 07: Sunset Lookout // Let's Connect
         ];
 
         milestones.forEach((milestone, idx) => {
-            const posX = stationPositions[idx] || (idx * 1600 + 600);
+            const posX = stationPositions[idx] || (idx * 2000 + 700);
             const station = new MilestonePavilion(scene, posX, roadY, milestone);
             stations.push(station);
         });
 
-        // 4. Drifting Blossom Petals Particle System
-        const petalEmitter = scene.add.particles(0, 0, 'particle_petal', {
+        // 4. Ambient Floating Golden Fireflies
+        scene.add.particles(0, 0, 'particle_firefly', {
+            x: { min: 0, max: scene.cameras.main.width },
+            y: { min: 100, max: 460 },
+            lifespan: 6000,
+            speedY: { min: -12, max: 12 },
+            speedX: { min: 10, max: 35 },
+            scale: { start: 0.8, end: 0.2 },
+            alpha: { start: 0.9, end: 0 },
+            frequency: 500
+        }).setScrollFactor(0);
+
+        // 5. Ambient Falling Blossom Petals
+        scene.add.particles(0, 0, 'particle_petal', {
             x: { min: 0, max: scene.cameras.main.width },
             y: -10,
             lifespan: 8000,
-            speedY: { min: 20, max: 45 },
-            speedX: { min: 30, max: 80 },
-            scale: { start: 0.8, end: 0.4 },
-            alpha: { start: 0.8, end: 0 },
+            speedY: { min: 18, max: 40 },
+            speedX: { min: 25, max: 65 },
+            scale: { start: 0.9, end: 0.4 },
+            alpha: { start: 0.85, end: 0 },
             rotate: { min: 0, max: 360 },
-            frequency: 400
-        });
-        petalEmitter.setScrollFactor(0); // Fixed screen ambient particles
+            frequency: 450
+        }).setScrollFactor(0);
     }
 }
 

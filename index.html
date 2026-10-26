@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pranesh Mylraj // Senior Software Engineer @ Amazon Lab126 — Lo-Fi Cycling Journey</title>
-    <link rel="stylesheet" href="css/style.css?v=2.0.0">
+    <title>Pranesh Mylraj // Senior Software Engineer @ Amazon Lab126 — Sunset Lo-Fi Journey</title>
+    <link rel="stylesheet" href="css/style.css?v=3.0.0">
     <!-- Phaser 3 Engine (Local with fallback to CDN) -->
     <script src="lib/phaser.min.js"></script>
     <script>
@@ -16,29 +16,29 @@
 <body>
 
     <!-- Header Navigation -->
-    <header class="lofi-header">
+    <header class="sunset-header">
         <div class="brand-wrapper">
             <span class="brand-tag">AMAZON LAB126</span>
-            <h1 class="brand-title">PRANESH<span>.JOURNEY</span></h1>
+            <h1 class="brand-title">PRANESH<span>.DEV</span></h1>
         </div>
 
         <div class="header-controls">
-            <button id="btn-cruise" class="lofi-btn" title="Toggle Auto-Cruise [C]">
+            <button id="btn-cruise" class="sunset-btn" title="Toggle Auto-Cruise [C]">
                 <span>🚴</span> <span id="cruise-label">AUTO-CRUISE: ON</span>
             </button>
-            <button id="btn-audio" class="lofi-btn" title="Toggle Lo-Fi Beats [M]">
+            <button id="btn-audio" class="sunset-btn" title="Toggle Sunset Lo-Fi Beats [M]">
                 <span id="audio-icon">🔊</span> LO-FI BEATS
             </button>
-            <a href="https://www.linkedin.com/in/praneshmylraj" target="_blank" rel="noopener noreferrer" class="lofi-btn">
+            <a href="https://www.linkedin.com/in/praneshmylraj" target="_blank" rel="noopener noreferrer" class="sunset-btn">
                 <span>💼</span> LINKEDIN
             </a>
-            <a href="mailto:inboxpranesh@gmail.com" class="lofi-btn">
+            <a href="mailto:inboxpranesh@gmail.com" class="sunset-btn">
                 <span>✉️</span> EMAIL
             </a>
-            <a href="tel:2063539731" class="lofi-btn">
+            <a href="tel:2063539731" class="sunset-btn">
                 <span>📞</span> CALL
             </a>
-            <button id="btn-fullscreen" class="lofi-btn" title="Fullscreen">
+            <button id="btn-fullscreen" class="sunset-btn" title="Fullscreen">
                 <span>⛶</span>
             </button>
         </div>
@@ -67,11 +67,37 @@
                 <button id="v-right" class="v-btn">PEDAL ▶</button>
             </div>
             <div class="v-actions">
-                <button id="v-cruise" class="v-btn" style="border-color: #38bdf8;">🚴 CRUISE</button>
-                <button id="v-read" class="v-btn" style="border-color: #ec4899; color: #ec4899;">📖 READ</button>
+                <button id="v-cruise" class="v-btn" style="border-color: #f59e0b;">🚴 CRUISE</button>
+                <button id="v-read" class="v-btn" style="border-color: #fb7185; color: #fb7185;">📖 READ</button>
             </div>
         </div>
     </main>
+
+    <!-- Fullscreen Glassmorphic Resume & Story Modal -->
+    <div id="resume-modal" class="resume-modal-overlay">
+        <div class="resume-modal-card">
+            <div class="modal-header-bar">
+                <div>
+                    <span id="m-badge" class="modal-badge">AMAZON LAB126</span>
+                    <h2 id="m-title" class="modal-title">Senior Software Engineer</h2>
+                    <div id="m-subtitle" class="modal-subtitle">October 2023 – Present • Irvine, CA</div>
+                </div>
+                <button id="modal-close" class="modal-close-btn" title="Close [ESC]">✕</button>
+            </div>
+
+            <div class="modal-body-scroll">
+                <div id="m-quote" class="modal-quote"></div>
+                <div id="m-highlights" class="modal-bullet-list"></div>
+                <div id="m-tags" class="modal-tags-container"></div>
+            </div>
+
+            <div class="modal-footer-nav">
+                <button id="m-prev" class="modal-nav-btn">◀ Previous Chapter</button>
+                <a id="m-contact-link" href="mailto:inboxpranesh@gmail.com" class="modal-nav-btn primary">✉️ Connect via Email</a>
+                <button id="m-next" class="modal-nav-btn">Next Chapter ➔</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Profile Summary Footer -->
     <footer class="profile-footer">
@@ -79,16 +105,19 @@
             <strong>Pranesh Mylraj</strong> &bull; Senior Software Engineer @ Amazon Lab126 &bull; Distributed Systems • VegaOS • 10K+ TPS • Agentic AI on Bedrock
         </div>
         <div>
-            Irvine, CA &bull; <a href="mailto:inboxpranesh@gmail.com">inboxpranesh@gmail.com</a> &bull; (206) 353-9731 &bull; <a href="https://www.linkedin.com/in/praneshmylraj" target="_blank">LinkedIn</a>
+            Irvine, CA &bull; <a href="mailto:inboxpranesh@gmail.com">inboxpranesh@gmail.com</a> &bull; <a href="tel:2063539731">(206) 353-9731</a> &bull; <a href="https://www.linkedin.com/in/praneshmylraj" target="_blank">LinkedIn</a>
         </div>
     </footer>
 
-    <!-- Global Navigation & Control Handlers -->
+    <!-- Global Virtual Input & Modal Handlers -->
     <script>
         window.virtualInput = {
             left: false,
             right: false
         };
+
+        window.isModalOpen = false;
+        window.currentMilestone = null;
 
         // Render Quick-Jump Station Bar
         window.renderStationBar = function(milestones) {
@@ -118,7 +147,86 @@
             if (activePill) activePill.classList.add('active');
         };
 
-        // Header Button Handlers
+        // Modal Open / Close Logic
+        window.openResumeModal = function(milestone) {
+            window.currentMilestone = milestone;
+            window.isModalOpen = true;
+
+            document.getElementById('m-badge').textContent = milestone.badge;
+            document.getElementById('m-title').textContent = milestone.title;
+            document.getElementById('m-subtitle').textContent = `${milestone.subtitle} • ${milestone.period}`;
+            document.getElementById('m-quote').textContent = `“${milestone.quote}”`;
+
+            // Populate bullet highlights with bold headers
+            const listEl = document.getElementById('m-highlights');
+            listEl.innerHTML = '';
+            milestone.highlights.forEach(h => {
+                const item = document.createElement('div');
+                item.className = 'modal-bullet-item';
+                // Format any colon as bold header
+                const parts = h.split(': ');
+                if (parts.length > 1) {
+                    item.innerHTML = `<strong>${parts[0]}:</strong> ${parts.slice(1).join(': ')}`;
+                } else {
+                    item.textContent = h;
+                }
+                listEl.appendChild(item);
+            });
+
+            // Populate tech tags
+            const tagsEl = document.getElementById('m-tags');
+            tagsEl.innerHTML = '';
+            milestone.techTags.forEach(tag => {
+                const pill = document.createElement('span');
+                pill.className = 'modal-tag-pill';
+                pill.textContent = `#${tag}`;
+                tagsEl.appendChild(pill);
+            });
+
+            document.getElementById('resume-modal').classList.add('active');
+            window.soundEngine?.playStationChime();
+        };
+
+        window.closeResumeModal = function() {
+            window.isModalOpen = false;
+            document.getElementById('resume-modal').classList.remove('active');
+            window.soundEngine?.playClick();
+        };
+
+        window.navigateResumeModal = function(dir) {
+            if (!window.currentMilestone) return;
+            const list = window.RESUME_DATA.milestones;
+            const idx = list.findIndex(m => m.id === window.currentMilestone.id);
+            let nextIdx = idx + dir;
+            if (nextIdx < 0) nextIdx = list.length - 1;
+            if (nextIdx >= list.length) nextIdx = 0;
+
+            const nextM = list[nextIdx];
+            window.openResumeModal(nextM);
+
+            const gameScene = window.game?.scene?.getScene('GameScene');
+            if (gameScene && gameScene.stations[nextIdx]) {
+                gameScene.cyclist.x = gameScene.stations[nextIdx].x - 30;
+            }
+        };
+
+        // Modal Event Listeners
+        document.getElementById('modal-close').addEventListener('click', window.closeResumeModal);
+        document.getElementById('resume-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'resume-modal') window.closeResumeModal();
+        });
+        document.getElementById('m-prev').addEventListener('click', () => window.navigateResumeModal(-1));
+        document.getElementById('m-next').addEventListener('click', () => window.navigateResumeModal(1));
+
+        // Global Keyboard Listeners for Modal
+        window.addEventListener('keydown', (e) => {
+            if (!window.isModalOpen) return;
+            if (e.key === 'Escape') window.closeResumeModal();
+            if (e.key === 'ArrowLeft') window.navigateResumeModal(-1);
+            if (e.key === 'ArrowRight') window.navigateResumeModal(1);
+        });
+
+        // Header Buttons
         const btnAudio = document.getElementById('btn-audio');
         const audioIcon = document.getElementById('audio-icon');
         btnAudio.addEventListener('click', () => {
@@ -150,7 +258,7 @@
             }
         });
 
-        // Touch Virtual Controller
+        // Virtual Touch Events
         const bindButton = (id, onDown, onUp) => {
             const btn = document.getElementById(id);
             if (!btn) return;
@@ -173,24 +281,20 @@
 
         document.getElementById('v-read')?.addEventListener('click', () => {
             const gameScene = window.game?.scene?.getScene('GameScene');
-            if (gameScene) {
-                if (gameScene.modalOpen) {
-                    gameScene.closeMilestoneModal();
-                } else if (gameScene.activeStation) {
-                    gameScene.openMilestoneModal(gameScene.activeStation.milestone);
-                }
+            if (gameScene && gameScene.activeStation) {
+                window.openResumeModal(gameScene.activeStation.milestone);
             }
         });
     </script>
 
     <!-- Game Scripts -->
-    <script src="src/resumeData.js?v=2.0.0"></script>
-    <script src="src/audio.js?v=2.0.0"></script>
-    <script src="src/sprites.js?v=2.0.0"></script>
-    <script src="src/entities.js?v=2.0.0"></script>
-    <script src="src/world.js?v=2.0.0"></script>
-    <script src="src/scenes/BootScene.js?v=2.0.0"></script>
-    <script src="src/scenes/GameScene.js?v=2.0.0"></script>
-    <script src="src/game.js?v=2.0.0"></script>
+    <script src="src/resumeData.js?v=3.0.0"></script>
+    <script src="src/audio.js?v=3.0.0"></script>
+    <script src="src/sprites.js?v=3.0.0"></script>
+    <script src="src/entities.js?v=3.0.0"></script>
+    <script src="src/world.js?v=3.0.0"></script>
+    <script src="src/scenes/BootScene.js?v=3.0.0"></script>
+    <script src="src/scenes/GameScene.js?v=3.0.0"></script>
+    <script src="src/game.js?v=3.0.0"></script>
 </body>
 </html>

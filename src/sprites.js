@@ -1,6 +1,7 @@
 /**
- * Lo-Fi Artwork and Sprite Generator for Pranesh's Journey
- * Procedurally generates an animated cyclist, scenic road, street lamps, and pavilions.
+ * Evening Sunset & Warm Golden-Hour Artwork Generator
+ * High-detail procedural scenery, animated cyclist with flowing scarf,
+ * glowing vintage streetlamps, cozy roadside pavilions, and fireflies.
  */
 
 class SpriteGenerator {
@@ -16,453 +17,619 @@ class SpriteGenerator {
         canvas.width = w;
         canvas.height = h;
         const ctx = canvas.getContext('2d');
-        ctx.imageSmoothingEnabled = false;
+        ctx.imageSmoothingEnabled = true;
         return { canvas, ctx };
     }
 
     // ==========================================
-    // 1. CYCLIST (Pranesh riding a bicycle)
+    // 1. DETAILED CYCLIST (Pranesh in sunset breeze)
     // ==========================================
     static generateCyclist(scene) {
-        const W = 64;
-        const H = 48;
+        const W = 80;
+        const H = 64;
 
-        // 8 frames for smooth pedaling loop
+        // 8-frame smooth pedaling cycle
         for (let frame = 0; frame < 8; frame++) {
             const { canvas, ctx } = this.createCanvas(W, H);
 
-            // Ground shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+            // Soft Ground Shadow with sunset angle
+            ctx.fillStyle = 'rgba(20, 10, 25, 0.35)';
             ctx.beginPath();
-            ctx.ellipse(32, 45, 26, 4, 0, 0, Math.PI * 2);
+            ctx.ellipse(40, 58, 32, 5, 0.05, 0, Math.PI * 2);
             ctx.fill();
 
-            // Wheels (Radius 10)
-            const rearWheelX = 14;
-            const frontWheelX = 50;
-            const wheelY = 35;
-            const wheelR = 9;
+            // Wheel Geometry
+            const rearX = 18;
+            const frontX = 62;
+            const wheelY = 46;
+            const wheelR = 12;
 
-            // Draw wheel with spinning spokes
-            const drawWheel = (wx, wy) => {
-                // Tire
-                ctx.strokeStyle = '#1e293b';
-                ctx.lineWidth = 2.5;
+            // Function to render detailed bicycle wheel
+            const renderWheel = (wx, wy) => {
+                // Outer rubber tire
+                ctx.strokeStyle = '#18181b';
+                ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.arc(wx, wy, wheelR, 0, Math.PI * 2);
                 ctx.stroke();
 
-                // Rim
-                ctx.strokeStyle = '#cbd5e1';
-                ctx.lineWidth = 1;
+                // Polished silver rim
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1.2;
                 ctx.beginPath();
                 ctx.arc(wx, wy, wheelR - 1.5, 0, Math.PI * 2);
                 ctx.stroke();
 
                 // Hub
-                ctx.fillStyle = '#64748b';
-                ctx.fillRect(wx - 1.5, wy - 1.5, 3, 3);
+                ctx.fillStyle = '#94a3b8';
+                ctx.beginPath();
+                ctx.arc(wx, wy, 2.5, 0, Math.PI * 2);
+                ctx.fill();
 
-                // Spokes rotating based on frame
+                // 8 Rotating spokes
                 const angleOffset = (frame / 8) * Math.PI;
-                ctx.strokeStyle = '#94a3b8';
-                ctx.lineWidth = 0.8;
-                for (let a = 0; a < Math.PI * 2; a += Math.PI / 3) {
+                ctx.strokeStyle = 'rgba(203, 213, 225, 0.85)';
+                ctx.lineWidth = 0.9;
+                for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
                     const ang = a + angleOffset;
                     ctx.beginPath();
                     ctx.moveTo(wx, wy);
-                    ctx.lineTo(wx + Math.cos(ang) * (wheelR - 1.5), wy + Math.sin(ang) * (wheelR - 1.5));
+                    ctx.lineTo(wx + Math.cos(ang) * (wheelR - 2), wy + Math.sin(ang) * (wheelR - 2));
                     ctx.stroke();
                 }
             };
 
-            drawWheel(rearWheelX, wheelY);
-            drawWheel(frontWheelX, wheelY);
+            renderWheel(rearX, wheelY);
+            renderWheel(frontX, wheelY);
 
-            // Bicycle Frame (Sleek slate / teal vintage commuter)
+            // Bicycle Frame (Vintage Commuter in Warm Slate-Teal with Metallic Sheen)
+            const bbX = 38;
+            const bbY = 46;
+            const saddlePostX = 32;
+            const saddlePostY = 30;
+            const headX = 56;
+            const headY = 24;
+
             ctx.strokeStyle = '#0284c7';
-            ctx.lineWidth = 2.5;
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Rear triangle
             ctx.beginPath();
-            // Chainstay: rear hub to bottom bracket (BB)
-            const bbX = 30;
-            const bbY = 35;
-            ctx.moveTo(rearWheelX, wheelY);
+            ctx.moveTo(rearX, wheelY);
             ctx.lineTo(bbX, bbY);
-            // Seat tube: BB to saddle post
-            const saddlePostX = 26;
-            const saddlePostY = 22;
             ctx.lineTo(saddlePostX, saddlePostY);
-            // Seat stay: saddle post to rear hub
-            ctx.lineTo(rearWheelX, wheelY);
-            // Down tube: BB to head tube
-            const headX = 46;
-            const headY = 18;
+            ctx.lineTo(rearX, wheelY);
+            // Main triangle
             ctx.moveTo(bbX, bbY);
             ctx.lineTo(headX, headY);
-            // Top tube: saddle post to head tube
-            ctx.moveTo(saddlePostX, saddlePostY);
-            ctx.lineTo(headX, headY);
-            // Fork: head tube to front wheel
-            ctx.lineTo(frontWheelX, wheelY);
+            ctx.lineTo(saddlePostX, saddlePostY);
+            // Fork
+            ctx.moveTo(headX, headY);
+            ctx.lineTo(frontX, wheelY);
             ctx.stroke();
+
+            // Rear luggage rack
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(rearX, wheelY);
+            ctx.lineTo(saddlePostX - 8, saddlePostY + 3);
+            ctx.lineTo(saddlePostX - 2, saddlePostY + 3);
+            ctx.stroke();
+
+            // Red Rear Safety Reflector Light
+            ctx.fillStyle = '#ef4444';
+            ctx.fillRect(saddlePostX - 9, saddlePostY + 1, 3, 3);
 
             // Handlebars & Stem
             ctx.strokeStyle = '#64748b';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.2;
             ctx.beginPath();
             ctx.moveTo(headX, headY);
-            ctx.lineTo(headX - 1, headY - 5);
-            ctx.lineTo(headX + 4, headY - 6);
+            ctx.lineTo(headX - 1, headY - 7);
+            ctx.lineTo(headX + 5, headY - 8);
             ctx.stroke();
 
-            // Warm Headlight
+            // Front Vintage Headlight (Warm Amber Glow)
             ctx.fillStyle = '#fef08a';
-            ctx.fillRect(headX + 5, headY - 5, 3, 3);
-            // Light cone
-            ctx.fillStyle = 'rgba(254, 240, 138, 0.15)';
+            ctx.fillRect(headX + 6, headY - 8, 4, 4);
+
+            // Warm Volumetric Light Cone
+            const lightGrad = ctx.createLinearGradient(headX + 10, headY - 6, W, headY + 10);
+            lightGrad.addColorStop(0, 'rgba(254, 240, 138, 0.4)');
+            lightGrad.addColorStop(0.5, 'rgba(251, 191, 36, 0.18)');
+            lightGrad.addColorStop(1, 'rgba(251, 191, 36, 0)');
+            ctx.fillStyle = lightGrad;
             ctx.beginPath();
-            ctx.moveTo(headX + 8, headY - 4);
-            ctx.lineTo(W, headY - 8);
-            ctx.lineTo(W, headY + 12);
+            ctx.moveTo(headX + 10, headY - 7);
+            ctx.lineTo(W, headY - 14);
+            ctx.lineTo(W, headY + 18);
             ctx.closePath();
             ctx.fill();
 
-            // Saddle
-            ctx.fillStyle = '#78350f'; // Leather brown
+            // Vintage Leather Saddle
+            ctx.fillStyle = '#78350f';
             ctx.beginPath();
-            ctx.ellipse(saddlePostX - 1, saddlePostY - 1, 5, 2, -0.1, 0, Math.PI * 2);
+            ctx.ellipse(saddlePostX - 1, saddlePostY - 2, 7, 3, -0.08, 0, Math.PI * 2);
             ctx.fill();
 
-            // Crank & Pedals calculation
-            const crankAngle = (frame / 8) * Math.PI * 2;
-            const crankLen = 6;
-            const pedal1X = bbX + Math.cos(crankAngle) * crankLen;
-            const pedal1Y = bbY + Math.sin(crankAngle) * crankLen;
-            const pedal2X = bbX - Math.cos(crankAngle) * crankLen;
-            const pedal2Y = bbY - Math.sin(crankAngle) * crankLen;
+            // Pedals & Cranks (Rotational calculation)
+            const crankAng = (frame / 8) * Math.PI * 2;
+            const crankRadius = 7;
+            const p1X = bbX + Math.cos(crankAng) * crankRadius;
+            const p1Y = bbY + Math.sin(crankAng) * crankRadius;
+            const p2X = bbX - Math.cos(crankAng) * crankRadius;
+            const p2Y = bbY - Math.sin(crankAng) * crankRadius;
 
             // Crank arm
             ctx.strokeStyle = '#94a3b8';
-            ctx.lineWidth = 1.5;
+            ctx.lineWidth = 1.8;
             ctx.beginPath();
-            ctx.moveTo(pedal2X, pedal2Y);
-            ctx.lineTo(pedal1X, pedal1Y);
+            ctx.moveTo(p2X, p2Y);
+            ctx.lineTo(p1X, p1Y);
             ctx.stroke();
 
-            // --- RIDER (Pranesh) ---
+            // --- CYCLIST (Pranesh) ---
             const hipX = saddlePostX;
-            const hipY = saddlePostY - 3;
+            const hipY = saddlePostY - 4;
+            const shoulderX = 44;
+            const shoulderY = 18;
 
-            // Torso (Comfortable forward lean)
-            const shoulderX = 35;
-            const shoulderY = 14;
-
-            // Back leg (pedal 2)
+            // Back leg (Pedal 2)
             ctx.strokeStyle = '#1e293b';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(hipX, hipY);
-            // Knee
-            const knee2X = (hipX + pedal2X) / 2 + 2;
-            const knee2Y = Math.min(hipY, pedal2Y) - 1;
-            ctx.lineTo(knee2X, knee2Y);
-            ctx.lineTo(pedal2X, pedal2Y);
-            ctx.stroke();
-
-            // Torso / Cozy Jacket (Navy / Teal)
-            ctx.fillStyle = '#0f172a';
-            ctx.beginPath();
-            ctx.moveTo(hipX - 3, hipY);
-            ctx.lineTo(shoulderX, shoulderY - 2);
-            ctx.lineTo(shoulderX + 4, shoulderY + 2);
-            ctx.lineTo(hipX + 3, hipY + 1);
-            ctx.closePath();
-            ctx.fill();
-
-            // Scarf / Accent (warm amber)
-            ctx.fillStyle = '#f59e0b';
-            ctx.fillRect(shoulderX + 1, shoulderY - 4, 4, 3);
-
-            // Front leg (pedal 1)
-            ctx.strokeStyle = '#334155';
             ctx.lineWidth = 3.5;
             ctx.beginPath();
             ctx.moveTo(hipX, hipY);
-            const knee1X = (hipX + pedal1X) / 2 + 3;
-            const knee1Y = Math.min(hipY, pedal1Y) - 2;
-            ctx.lineTo(knee1X, knee1Y);
-            ctx.lineTo(pedal1X, pedal1Y);
+            const k2X = (hipX + p2X) / 2 + 1;
+            const k2Y = Math.min(hipY, p2Y) - 2;
+            ctx.lineTo(k2X, k2Y);
+            ctx.lineTo(p2X, p2Y);
             ctx.stroke();
 
-            // Shoes
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(pedal1X - 2, pedal1Y - 1, 5, 2);
-
-            // Arms holding handlebars
-            ctx.strokeStyle = '#0f172a';
-            ctx.lineWidth = 2.5;
+            // Cozy Autumn Sweater / Jacket (Warm Terracotta / Navy)
+            ctx.fillStyle = '#c2410c'; // Warm sunset rust sweater
             ctx.beginPath();
-            ctx.moveTo(shoulderX + 2, shoulderY);
-            ctx.lineTo(headX + 2, headY - 5);
-            ctx.stroke();
-
-            // Head & Cap / Hair
-            const headCenterX = shoulderX + 3;
-            const headCenterY = shoulderY - 7;
-            ctx.fillStyle = '#e29578'; // Skin
-            ctx.beginPath();
-            ctx.arc(headCenterX, headCenterY, 4, 0, Math.PI * 2);
+            ctx.moveTo(hipX - 3, hipY + 1);
+            ctx.lineTo(shoulderX - 2, shoulderY - 3);
+            ctx.lineTo(shoulderX + 5, shoulderY + 3);
+            ctx.lineTo(hipX + 3, hipY + 2);
+            ctx.closePath();
             ctx.fill();
 
-            // Dark textured hair & headphones
-            ctx.fillStyle = '#090d16';
-            ctx.fillRect(headCenterX - 3, headCenterY - 5, 7, 4);
-            // Lo-fi headphones
-            ctx.fillStyle = '#ec4899';
-            ctx.fillRect(headCenterX - 1, headCenterY - 3, 3, 5);
+            // Flowing Sunset Scarf (animated fluttering in breeze)
+            const scarfFlutter = Math.sin((frame / 8) * Math.PI * 2) * 3;
+            ctx.fillStyle = '#facc15'; // Warm golden yellow scarf
+            ctx.beginPath();
+            ctx.moveTo(shoulderX - 1, shoulderY - 5);
+            ctx.lineTo(shoulderX - 14, shoulderY - 7 + scarfFlutter);
+            ctx.lineTo(shoulderX - 18, shoulderY - 2 + scarfFlutter);
+            ctx.lineTo(shoulderX + 2, shoulderY - 1);
+            ctx.closePath();
+            ctx.fill();
+
+            // Front leg (Pedal 1)
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(hipX, hipY);
+            const k1X = (hipX + p1X) / 2 + 2;
+            const k1Y = Math.min(hipY, p1Y) - 3;
+            ctx.lineTo(k1X, k1Y);
+            ctx.lineTo(p1X, p1Y);
+            ctx.stroke();
+
+            // Clean white sneaker
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(p1X - 2, p1Y - 1, 6, 3);
+
+            // Arms holding handlebars
+            ctx.strokeStyle = '#c2410c';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(shoulderX + 2, shoulderY);
+            ctx.lineTo(headX + 4, headY - 6);
+            ctx.stroke();
+
+            // Head & Commuter Cap
+            const headXPos = shoulderX + 3;
+            const headYPos = shoulderY - 8;
+
+            ctx.fillStyle = '#e29578'; // Face
+            ctx.beginPath();
+            ctx.arc(headXPos, headYPos, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Dark hair
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(headXPos - 4, headYPos - 6, 8, 4);
+
+            // Cozy Lo-Fi Over-Ear Headphones
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(headXPos - 1, headYPos - 1, 3, 0, Math.PI * 2);
+            ctx.fill();
 
             scene.textures.addCanvas(`cyclist_pedal_${frame}`, canvas);
         }
     }
 
     // ==========================================
-    // 2. ENVIRONMENT & MILESTONE PAVILIONS
+    // 2. ENVIRONMENT & WARM MILESTONE PAVILIONS
     // ==========================================
     static generateEnvironment(scene) {
-        // Milestone Gazebo / Lantern Pavilion (80x120)
+        // Milestone Pavilion (Cozy Tea-House & Coffee Lookout) - 100x130
         {
-            const { canvas, ctx } = this.createCanvas(80, 120);
+            const { canvas, ctx } = this.createCanvas(100, 130);
 
-            // Wooden deck
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(4, 108, 72, 12);
-            ctx.fillStyle = '#334155';
-            ctx.fillRect(8, 110, 64, 4);
+            // Wooden Raised Deck Platform
+            ctx.fillStyle = '#292524';
+            ctx.fillRect(4, 114, 92, 16);
+            ctx.fillStyle = '#44403c';
+            ctx.fillRect(8, 116, 84, 4);
 
-            // Pillars
-            ctx.fillStyle = '#0f172a';
-            ctx.fillRect(10, 30, 6, 80);
-            ctx.fillRect(64, 30, 6, 80);
+            // Timber Pillars
+            ctx.fillStyle = '#1c1917';
+            ctx.fillRect(12, 34, 7, 82);
+            ctx.fillRect(81, 34, 7, 82);
 
-            // Pagoda Roof
-            ctx.fillStyle = '#0284c7';
+            // Japanese/Scandinavian Pagoda Roof in Warm Terracotta
+            ctx.fillStyle = '#9a3412';
             ctx.beginPath();
-            ctx.moveTo(0, 30);
-            ctx.lineTo(40, 8);
-            ctx.lineTo(80, 30);
-            ctx.lineTo(76, 36);
-            ctx.lineTo(4, 36);
+            ctx.moveTo(0, 34);
+            ctx.lineTo(50, 8);
+            ctx.lineTo(100, 34);
+            ctx.lineTo(94, 40);
+            ctx.lineTo(6, 40);
             ctx.closePath();
             ctx.fill();
 
-            // Glowing Paper Lantern
-            ctx.fillStyle = '#fbbf24';
+            // Roof Ridge highlight
+            ctx.strokeStyle = '#ea580c';
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.arc(40, 52, 9, 0, Math.PI * 2);
-            ctx.fill();
-            // Lantern ribs
-            ctx.strokeStyle = '#b45309';
-            ctx.lineWidth = 1;
+            ctx.moveTo(0, 34);
+            ctx.lineTo(50, 8);
+            ctx.lineTo(100, 34);
             ctx.stroke();
 
-            // Warm lantern glow aura
-            const grad = ctx.createRadialGradient(40, 52, 2, 40, 52, 32);
-            grad.addColorStop(0, 'rgba(251, 191, 36, 0.45)');
-            grad.addColorStop(1, 'rgba(251, 191, 36, 0)');
-            ctx.fillStyle = grad;
+            // Cozy Wooden Bench inside
+            ctx.fillStyle = '#78350f';
+            ctx.fillRect(28, 98, 44, 6);
+            ctx.fillRect(32, 104, 4, 12);
+            ctx.fillRect(64, 104, 4, 12);
+
+            // Steaming Tea / Coffee Mug on bench
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(48, 92, 5, 6);
+            // Steam
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
             ctx.beginPath();
-            ctx.arc(40, 52, 32, 0, Math.PI * 2);
+            ctx.moveTo(50, 90);
+            ctx.bezierCurveTo(48, 85, 52, 82, 50, 78);
+            ctx.stroke();
+
+            // Glowing Paper Lantern with Warm Sunset Light
+            ctx.fillStyle = '#fde047';
+            ctx.beginPath();
+            ctx.arc(50, 56, 11, 0, Math.PI * 2);
             ctx.fill();
 
-            // Signboard in pavilion
-            ctx.fillStyle = '#090d16';
-            ctx.fillRect(20, 75, 40, 24);
-            ctx.strokeStyle = '#38bdf8';
-            ctx.strokeRect(20, 75, 40, 24);
+            // Lantern ribs
+            ctx.strokeStyle = '#b45309';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.arc(50, 56, 11, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(50, 45);
+            ctx.lineTo(50, 67);
+            ctx.stroke();
 
-            ctx.fillStyle = '#38bdf8';
-            ctx.font = 'bold 7px monospace';
+            // Volumetric Lantern Amber Glow
+            const glow = ctx.createRadialGradient(50, 56, 4, 50, 56, 42);
+            glow.addColorStop(0, 'rgba(253, 224, 71, 0.55)');
+            glow.addColorStop(0.5, 'rgba(245, 158, 11, 0.25)');
+            glow.addColorStop(1, 'rgba(245, 158, 11, 0)');
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(50, 56, 42, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Station Signboard Plaque
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(22, 72, 56, 22);
+            ctx.strokeStyle = '#f59e0b';
+            ctx.lineWidth = 1.2;
+            ctx.strokeRect(22, 72, 56, 22);
+
+            ctx.fillStyle = '#fef08a';
+            ctx.font = 'bold 8px monospace';
             ctx.textAlign = 'center';
-            ctx.fillText('STATION', 40, 86);
-            ctx.fillText('ACCESS', 40, 94);
+            ctx.fillText('STATION', 50, 82);
+            ctx.fillText('STORY', 50, 91);
 
             scene.textures.addCanvas('station_pavilion', canvas);
         }
 
-        // Street Lamp (32x90) with warm light cone
+        // Vintage Street Lamp with Warm Amber Volumetric Light Cone (48x100)
         {
-            const { canvas, ctx } = this.createCanvas(32, 90);
-            // Pole
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(14, 18, 4, 72);
+            const { canvas, ctx } = this.createCanvas(48, 100);
+            // Black Cast Iron Pole
+            ctx.fillStyle = '#1c1917';
+            ctx.fillRect(22, 16, 4, 84);
             // Base
-            ctx.fillRect(11, 86, 10, 4);
-            // Curved arm
-            ctx.fillStyle = '#334155';
-            ctx.fillRect(12, 12, 12, 4);
-            // Lamp casing
-            ctx.fillStyle = '#0f172a';
-            ctx.fillRect(18, 14, 10, 6);
-            // Glowing bulb
-            ctx.fillStyle = '#fde047';
-            ctx.fillRect(20, 20, 6, 4);
+            ctx.fillRect(18, 94, 12, 6);
+            // Ornate Lamp Housing
+            ctx.fillStyle = '#292524';
+            ctx.fillRect(16, 12, 16, 6);
+            ctx.fillRect(18, 18, 12, 10);
+
+            // Glowing Amber Filament
+            ctx.fillStyle = '#fef08a';
+            ctx.fillRect(22, 20, 4, 6);
+
+            // Volumetric Amber Light Cone down to road
+            const cone = ctx.createLinearGradient(24, 26, 24, 100);
+            cone.addColorStop(0, 'rgba(253, 224, 71, 0.45)');
+            cone.addColorStop(0.6, 'rgba(245, 158, 11, 0.2)');
+            cone.addColorStop(1, 'rgba(245, 158, 11, 0)');
+            ctx.fillStyle = cone;
+            ctx.beginPath();
+            ctx.moveTo(20, 26);
+            ctx.lineTo(28, 26);
+            ctx.lineTo(44, 100);
+            ctx.lineTo(4, 100);
+            ctx.closePath();
+            ctx.fill();
 
             scene.textures.addCanvas('street_lamp', canvas);
         }
 
-        // Scenic Flowering Cherry / Lo-fi Tree (64x90)
+        // Blooming Sunset Tree (72x100)
         {
-            const { canvas, ctx } = this.createCanvas(64, 90);
+            const { canvas, ctx } = this.createCanvas(72, 100);
             // Trunk
             ctx.fillStyle = '#1c1917';
             ctx.beginPath();
-            ctx.moveTo(28, 90);
-            ctx.lineTo(34, 90);
-            ctx.lineTo(36, 50);
-            ctx.lineTo(44, 40);
-            ctx.lineTo(32, 44);
-            ctx.lineTo(24, 38);
-            ctx.lineTo(28, 50);
+            ctx.moveTo(32, 100);
+            ctx.lineTo(40, 100);
+            ctx.lineTo(42, 55);
+            ctx.lineTo(52, 42);
+            ctx.lineTo(38, 48);
+            ctx.lineTo(26, 40);
+            ctx.lineTo(32, 55);
             ctx.closePath();
             ctx.fill();
 
-            // Lush Foliage Clouds (Soft Lavender & Pink)
-            const drawPuff = (cx, cy, r, color) => {
-                ctx.fillStyle = color;
+            // Foliage in warm sunset blossoms (Rose, Peach, Gold)
+            const drawPuff = (cx, cy, r, fill) => {
+                ctx.fillStyle = fill;
                 ctx.beginPath();
                 ctx.arc(cx, cy, r, 0, Math.PI * 2);
                 ctx.fill();
             };
 
-            drawPuff(32, 32, 22, '#4a044e');
-            drawPuff(22, 26, 16, '#701a75');
-            drawPuff(42, 26, 17, '#86198f');
-            drawPuff(32, 18, 18, '#a21caf');
-            drawPuff(26, 14, 12, '#c026d3');
-            drawPuff(38, 14, 13, '#e879f9');
-            drawPuff(32, 10, 10, '#f5d0fe');
+            drawPuff(36, 36, 26, '#701a75'); // Dark violet base
+            drawPuff(26, 30, 20, '#9d174d'); // Rose
+            drawPuff(46, 30, 22, '#be185d');
+            drawPuff(36, 22, 20, '#e11d48'); // Warm cherry
+            drawPuff(28, 16, 15, '#fb7185'); // Peach
+            drawPuff(44, 16, 16, '#f43f5e');
+            drawPuff(36, 12, 12, '#fecdd3'); // Golden pink highlight
 
             scene.textures.addCanvas('lofi_tree', canvas);
         }
 
-        // Road Platform Tile (64x40)
+        // Telegraph Pole with Power Lines (64x120)
+        {
+            const { canvas, ctx } = this.createCanvas(64, 120);
+            // Wooden pole
+            ctx.fillStyle = '#292524';
+            ctx.fillRect(30, 10, 4, 110);
+            // Crossbeam
+            ctx.fillRect(12, 20, 40, 4);
+            // Insulator cups
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(14, 17, 3, 3);
+            ctx.fillRect(28, 17, 3, 3);
+            ctx.fillRect(47, 17, 3, 3);
+
+            // Silhouetted little bird sitting on wire!
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.ellipse(38, 18, 2.5, 1.8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillRect(39.5, 17, 1.5, 1); // beak
+
+            scene.textures.addCanvas('telegraph_pole', canvas);
+        }
+
+        // Smooth Asphalt Road Platform (64x40)
         {
             const { canvas, ctx } = this.createCanvas(64, 40);
-            // Dark smooth asphalt road
-            ctx.fillStyle = '#0c101d';
+            // Dark warm asphalt
+            ctx.fillStyle = '#181424';
             ctx.fillRect(0, 0, 64, 40);
-            // Road top curb with soft grass
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(0, 0, 64, 4);
-            ctx.fillStyle = '#065f46'; // Emerald grass rim
-            ctx.fillRect(0, 0, 64, 2);
 
-            // Dashed painted road center line
-            ctx.fillStyle = 'rgba(254, 240, 138, 0.4)';
+            // Top curb reflecting sunset warmth
+            ctx.fillStyle = '#475569';
+            ctx.fillRect(0, 0, 64, 4);
+            ctx.fillStyle = '#f59e0b'; // Warm golden reflection line
+            ctx.fillRect(0, 0, 64, 1.5);
+
+            // Warm road divider dashes
+            ctx.fillStyle = 'rgba(254, 240, 138, 0.45)';
             ctx.fillRect(16, 20, 32, 3);
 
             scene.textures.addCanvas('road_tile', canvas);
         }
 
-        // Drifting Petal Particle (8x8)
+        // Firefly Particle (8x8)
+        {
+            const { canvas, ctx } = this.createCanvas(8, 8);
+            const grad = ctx.createRadialGradient(4, 4, 1, 4, 4, 4);
+            grad.addColorStop(0, '#ffffff');
+            grad.addColorStop(0.4, '#fde047');
+            grad.addColorStop(1, 'rgba(253, 224, 71, 0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(4, 4, 4, 0, Math.PI * 2);
+            ctx.fill();
+            scene.textures.addCanvas('particle_firefly', canvas);
+        }
+
+        // Falling Blossom Petal (8x8)
         {
             const { canvas, ctx } = this.createCanvas(8, 8);
             ctx.fillStyle = '#f472b6';
             ctx.beginPath();
-            ctx.ellipse(4, 4, 3.5, 2, 0.4, 0, Math.PI * 2);
+            ctx.ellipse(4, 4, 3.5, 2, 0.3, 0, Math.PI * 2);
             ctx.fill();
             scene.textures.addCanvas('particle_petal', canvas);
         }
     }
 
     // ==========================================
-    // 3. PARALLAX BACKGROUNDS
+    // 3. PARALLAX BACKGROUNDS (Warm Sunset)
     // ==========================================
     static generateBackgrounds(scene) {
-        // Sky Layer: Lo-Fi Twilight Gradient with Crescent Moon (600x384)
+        // Layer 1: Sunset Sky with Golden Sun & Backlit Evening Clouds (720x384)
         {
-            const { canvas, ctx } = this.createCanvas(600, 384);
-            const grad = ctx.createLinearGradient(0, 0, 0, 384);
-            grad.addColorStop(0, '#09081e');   // Deep indigo night
-            grad.addColorStop(0.4, '#1e143b'); // Warm twilight violet
-            grad.addColorStop(0.7, '#44184c'); // Magenta dusk
-            grad.addColorStop(0.9, '#7a2846'); // Sunset peach
-            grad.addColorStop(1, '#1e1026');   // Horizon base
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, 600, 384);
+            const { canvas, ctx } = this.createCanvas(720, 384);
 
-            // Crescent Moon
-            ctx.fillStyle = '#fef08a';
-            ctx.beginPath();
-            ctx.arc(460, 90, 24, 0, Math.PI * 2);
-            ctx.fill();
-            // Shadow circle cutting out crescent
-            ctx.fillStyle = '#110d29';
-            ctx.beginPath();
-            ctx.arc(468, 86, 22, 0, Math.PI * 2);
-            ctx.fill();
+            // Rich Sunset Sky Gradient
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, 384);
+            skyGrad.addColorStop(0, '#130d24');   // Deep twilight indigo
+            skyGrad.addColorStop(0.3, '#2a1138'); // Twilight violet
+            skyGrad.addColorStop(0.55, '#681e46'); // Magenta dusk
+            skyGrad.addColorStop(0.75, '#b43a32'); // Warm terracotta
+            skyGrad.addColorStop(0.9, '#e06d2c');  // Golden amber
+            skyGrad.addColorStop(1, '#facc15');   // Setting sun horizon glow
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, 720, 384);
 
-            // Moon halo
-            const moonGrad = ctx.createRadialGradient(460, 90, 10, 460, 90, 70);
-            moonGrad.addColorStop(0, 'rgba(254, 240, 138, 0.15)');
-            moonGrad.addColorStop(1, 'rgba(254, 240, 138, 0)');
-            ctx.fillStyle = moonGrad;
+            // Setting Golden Sun Orb on the Horizon
+            const sunX = 360;
+            const sunY = 260;
+
+            // Sun Outer Warm Halo
+            const haloGrad = ctx.createRadialGradient(sunX, sunY, 15, sunX, sunY, 160);
+            haloGrad.addColorStop(0, 'rgba(254, 240, 138, 0.7)');
+            haloGrad.addColorStop(0.35, 'rgba(251, 146, 60, 0.4)');
+            haloGrad.addColorStop(0.7, 'rgba(236, 72, 153, 0.15)');
+            haloGrad.addColorStop(1, 'rgba(236, 72, 153, 0)');
+            ctx.fillStyle = haloGrad;
             ctx.beginPath();
-            ctx.arc(460, 90, 70, 0, Math.PI * 2);
+            ctx.arc(sunX, sunY, 160, 0, Math.PI * 2);
             ctx.fill();
 
-            // Stars / Constellations
-            ctx.fillStyle = '#ffffff';
-            for (let i = 0; i < 45; i++) {
-                const sx = (i * 83) % 600;
-                const sy = (i * 47) % 200;
-                const r = (i % 3 === 0) ? 1.5 : 1;
-                ctx.fillRect(sx, sy, r, r);
-            }
+            // Radiant Sun Core
+            const sunCore = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 48);
+            sunCore.addColorStop(0, '#ffffff');
+            sunCore.addColorStop(0.5, '#fef08a');
+            sunCore.addColorStop(1, '#f97316');
+            ctx.fillStyle = sunCore;
+            ctx.beginPath();
+            ctx.arc(sunX, sunY, 48, 0, Math.PI * 2);
+            ctx.fill();
 
-            scene.textures.addCanvas('bg_lofi_sky', canvas);
+            // Fluffy Evening Clouds backlit by the setting sun
+            const drawCloud = (cx, cy, w, color, rimColor) => {
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.ellipse(cx, cy, w, w * 0.35, 0, 0, Math.PI * 2);
+                ctx.ellipse(cx - w * 0.35, cy - 2, w * 0.5, w * 0.28, 0, 0, Math.PI * 2);
+                ctx.ellipse(cx + w * 0.35, cy - 4, w * 0.6, w * 0.32, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Golden top rim
+                ctx.fillStyle = rimColor;
+                ctx.beginPath();
+                ctx.ellipse(cx, cy - w * 0.25, w * 0.8, w * 0.12, 0, 0, Math.PI * 2);
+                ctx.fill();
+            };
+
+            drawCloud(160, 180, 90, 'rgba(60, 20, 55, 0.6)', 'rgba(251, 191, 36, 0.45)');
+            drawCloud(560, 195, 110, 'rgba(75, 25, 60, 0.65)', 'rgba(251, 191, 36, 0.45)');
+            drawCloud(340, 120, 140, 'rgba(45, 15, 45, 0.5)', 'rgba(254, 215, 170, 0.35)');
+
+            // Distant soft mountain ridges
+            ctx.fillStyle = '#220d2d';
+            ctx.beginPath();
+            ctx.moveTo(0, 384);
+            ctx.lineTo(0, 275);
+            ctx.bezierCurveTo(120, 240, 240, 290, 360, 255);
+            ctx.bezierCurveTo(480, 220, 600, 280, 720, 250);
+            ctx.lineTo(720, 384);
+            ctx.closePath();
+            ctx.fill();
+
+            scene.textures.addCanvas('bg_sunset_sky', canvas);
         }
 
-        // Hills Layer: Distant Mountains & Pine Forest Silhouettes (600x240)
+        // Layer 2: Midground Rolling Hills & Cozy Village Rooftops with Lit Windows (720x260)
         {
-            const { canvas, ctx } = this.createCanvas(600, 240);
-            ctx.clearRect(0, 0, 600, 240);
+            const { canvas, ctx } = this.createCanvas(720, 260);
+            ctx.clearRect(0, 0, 720, 260);
 
-            // Distant rolling mountain silhouette
-            ctx.fillStyle = '#170f2a';
+            // Dark violet hills
+            ctx.fillStyle = '#150a22';
             ctx.beginPath();
-            ctx.moveTo(0, 240);
-            ctx.lineTo(0, 120);
-            ctx.bezierCurveTo(120, 70, 220, 140, 320, 90);
-            ctx.bezierCurveTo(420, 40, 520, 110, 600, 70);
-            ctx.lineTo(600, 240);
+            ctx.moveTo(0, 260);
+            ctx.lineTo(0, 140);
+            ctx.bezierCurveTo(160, 110, 320, 160, 480, 125);
+            ctx.bezierCurveTo(580, 105, 660, 140, 720, 130);
+            ctx.lineTo(720, 260);
             ctx.closePath();
             ctx.fill();
 
-            // Midground hills with pine tree silhouettes
-            ctx.fillStyle = '#0d091a';
-            ctx.beginPath();
-            ctx.moveTo(0, 240);
-            ctx.lineTo(0, 150);
-            ctx.bezierCurveTo(140, 120, 280, 180, 420, 130);
-            ctx.bezierCurveTo(500, 110, 560, 140, 600, 130);
-            ctx.lineTo(600, 240);
-            ctx.closePath();
-            ctx.fill();
+            // Cozy Village Cottage Silhouettes along the hilltops
+            const cottages = [
+                { x: 70, y: 125, w: 32, h: 22 },
+                { x: 190, y: 140, w: 28, h: 18 },
+                { x: 310, y: 145, w: 35, h: 24 },
+                { x: 450, y: 120, w: 30, h: 20 },
+                { x: 590, y: 122, w: 34, h: 22 },
+            ];
 
-            // Stylized little pine trees along ridge
-            ctx.fillStyle = '#090614';
-            for (let px = 10; px < 590; px += 28) {
-                const py = 145 + Math.sin(px * 0.02) * 15;
+            cottages.forEach(c => {
+                // House body
+                ctx.fillStyle = '#0a0512';
+                ctx.fillRect(c.x, c.y, c.w, c.h);
+
+                // Gable roof
+                ctx.fillStyle = '#1c0d28';
+                ctx.beginPath();
+                ctx.moveTo(c.x - 3, c.y);
+                ctx.lineTo(c.x + c.w / 2, c.y - 10);
+                ctx.lineTo(c.x + c.w + 3, c.y);
+                ctx.closePath();
+                ctx.fill();
+
+                // Warm Glowing Window!
+                ctx.fillStyle = '#fef08a';
+                ctx.fillRect(c.x + 8, c.y + 6, 7, 7);
+
+                // Window warm glow
+                ctx.fillStyle = 'rgba(254, 240, 138, 0.3)';
+                ctx.fillRect(c.x + 6, c.y + 4, 11, 11);
+            });
+
+            // Pine tree silhouettes
+            ctx.fillStyle = '#0a0512';
+            for (let px = 15; px < 710; px += 35) {
+                const py = 135 + Math.sin(px * 0.02) * 12;
                 ctx.beginPath();
                 ctx.moveTo(px, py);
-                ctx.lineTo(px + 4, py - 14);
-                ctx.lineTo(px + 8, py);
+                ctx.lineTo(px + 5, py - 16);
+                ctx.lineTo(px + 10, py);
                 ctx.closePath();
                 ctx.fill();
             }
 
-            scene.textures.addCanvas('bg_lofi_hills', canvas);
+            scene.textures.addCanvas('bg_village_hills', canvas);
         }
     }
 

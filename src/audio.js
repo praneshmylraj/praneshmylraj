@@ -1,6 +1,7 @@
 /**
- * Calm Lo-Fi Procedural Music Engine for Pranesh's Journey
- * Warm Rhodes jazz chords, vinyl crackle, gentle chillhop beat (74 BPM), and relaxing vibes.
+ * Sunset Warm Lo-Fi Audio Engine
+ * Features warm Rhodes 9th chords, gentle chillhop drum groove, vinyl warmth,
+ * and a subtle synthesized evening twilight cicada ambience.
  */
 
 class SoundEngine {
@@ -8,24 +9,30 @@ class SoundEngine {
         this.ctx = null;
         this.masterGain = null;
         this.musicGain = null;
+        this.ambientGain = null;
         this.sfxGain = null;
         this.isMuted = false;
         this.isMusicPlaying = false;
         this.timer = null;
         this.step = 0;
-        this.tempo = 74; // Relaxed lo-fi BPM
-        this.stepTime = (60 / this.tempo) / 4; // 16th note
+        this.tempo = 70; // Ultra-relaxing sunset tempo
+        this.stepTime = (60 / this.tempo) / 4;
 
-        // Lush jazz 7th / 9th chords in C major / A minor
-        // 1. Fmaj9, 2. Em7, 3. Dm9, 4. Cmaj7 (add9)
-        this.chordProgression = [
-            [174.61, 261.63, 329.63, 392.00, 523.25], // F3, C4, E4, G4, C5 (Fmaj9)
-            [164.81, 246.94, 293.66, 392.00, 493.88], // E3, B3, D4, G4, B4 (Em7)
-            [146.83, 220.00, 261.63, 349.23, 440.00], // D3, A3, C4, F4, A4 (Dm9)
-            [130.81, 196.00, 246.94, 293.66, 392.00]  // C3, G3, B3, D4, G4 (Cmaj9)
+        // Warm evening chords (Dbmaj9 -> Bbm9 -> Ebm9 -> Ab13)
+        // Transposed to cozy Cmaj9 / Am9 / Dm9 / G13
+        this.chords = [
+            [130.81, 196.00, 246.94, 293.66, 392.00, 493.88], // Cmaj9: C3, G3, B3, D4, G4, B4
+            [110.00, 164.81, 220.00, 261.63, 329.63, 392.00], // Am9:   A2, E3, A3, C4, E4, G4
+            [146.83, 220.00, 261.63, 349.23, 440.00, 523.25], // Dm9:   D3, A3, C4, F4, A4, C5
+            [98.00,  146.83, 196.00, 246.94, 329.63, 440.00]  // G13:   G2, D3, G3, B3, E4, A4
         ];
 
-        this.bassNotes = [87.31, 82.41, 73.42, 65.41]; // F2, E2, D2, C2
+        this.bassLines = [
+            65.41, 65.41, 73.42, 65.41, // C
+            55.00, 55.00, 65.41, 55.00, // A
+            73.42, 73.42, 82.41, 73.42, // D
+            49.00, 49.00, 58.27, 49.00  // G
+        ];
     }
 
     init() {
@@ -37,25 +44,31 @@ class SoundEngine {
 
         // Master Gain
         this.masterGain = this.ctx.createGain();
-        this.masterGain.gain.setValueAtTime(0.75, this.ctx.currentTime);
+        this.masterGain.gain.setValueAtTime(0.72, this.ctx.currentTime);
         this.masterGain.connect(this.ctx.destination);
 
-        // Music bus with warm lowpass master filter
-        this.musicFilter = this.ctx.createBiquadFilter();
-        this.musicFilter.type = 'lowpass';
-        this.musicFilter.frequency.setValueAtTime(2200, this.ctx.currentTime); // Cozy vintage roll-off
-        this.musicFilter.connect(this.masterGain);
+        // Warm Master Tape Filter (subtle high-end roll-off for that cozy analog cassette vibe)
+        this.tapeFilter = this.ctx.createBiquadFilter();
+        this.tapeFilter.type = 'lowpass';
+        this.tapeFilter.frequency.setValueAtTime(2400, this.ctx.currentTime);
+        this.tapeFilter.connect(this.masterGain);
 
+        // Music bus
         this.musicGain = this.ctx.createGain();
-        this.musicGain.gain.setValueAtTime(0.55, this.ctx.currentTime);
-        this.musicGain.connect(this.musicFilter);
+        this.musicGain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+        this.musicGain.connect(this.tapeFilter);
+
+        // Ambient evening background bus
+        this.ambientGain = this.ctx.createGain();
+        this.ambientGain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+        this.ambientGain.connect(this.masterGain);
 
         // SFX bus
         this.sfxGain = this.ctx.createGain();
-        this.sfxGain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+        this.sfxGain.gain.setValueAtTime(0.4, this.ctx.currentTime);
         this.sfxGain.connect(this.masterGain);
 
-        this.startVinylNoise();
+        this.startEveningAmbience();
     }
 
     ensureContext() {
@@ -68,45 +81,66 @@ class SoundEngine {
     toggleMute() {
         this.isMuted = !this.isMuted;
         if (this.masterGain && this.ctx) {
-            this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 0.75, this.ctx.currentTime);
+            this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : 0.72, this.ctx.currentTime);
         }
         return this.isMuted;
     }
 
-    // Gentle vinyl crackle & cassette hiss generator
-    startVinylNoise() {
+    // Cozy Vinyl & Subtle Evening Cricket Ambience
+    startEveningAmbience() {
         if (!this.ctx) return;
-        const bufferSize = this.ctx.sampleRate * 2;
+
+        // 1. Vinyl Crackle & Tape Flutter
+        const bufferSize = this.ctx.sampleRate * 3;
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const data = buffer.getChannelData(0);
 
-        let lastOut = 0;
+        let pink = 0;
         for (let i = 0; i < bufferSize; i++) {
-            // Pink noise filter
             const white = Math.random() * 2 - 1;
-            lastOut = (lastOut * 0.96) + (white * 0.04);
-            // Occasional gentle vinyl crackle pop
-            const crackle = (Math.random() > 0.998) ? (Math.random() - 0.5) * 0.4 : 0;
-            data[i] = (lastOut * 0.15) + crackle;
+            pink = (pink * 0.95) + (white * 0.05);
+            // Occasional warm vinyl pop
+            const pop = (Math.random() > 0.9985) ? (Math.random() - 0.5) * 0.35 : 0;
+            data[i] = (pink * 0.12) + pop;
         }
 
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = buffer;
-        noise.loop = true;
+        const vinylSource = this.ctx.createBufferSource();
+        vinylSource.buffer = buffer;
+        vinylSource.loop = true;
 
-        const noiseFilter = this.ctx.createBiquadFilter();
-        noiseFilter.type = 'bandpass';
-        noiseFilter.frequency.setValueAtTime(1400, this.ctx.currentTime);
-        noiseFilter.Q.setValueAtTime(1.2, this.ctx.currentTime);
+        const vinylFilter = this.ctx.createBiquadFilter();
+        vinylFilter.type = 'bandpass';
+        vinylFilter.frequency.setValueAtTime(1200, this.ctx.currentTime);
+        vinylFilter.Q.setValueAtTime(1.0, this.ctx.currentTime);
 
-        const noiseGain = this.ctx.createGain();
-        noiseGain.gain.setValueAtTime(0.045, this.ctx.currentTime);
+        vinylSource.connect(vinylFilter);
+        vinylFilter.connect(this.ambientGain);
+        vinylSource.start();
 
-        noise.connect(noiseFilter);
-        noiseFilter.connect(noiseGain);
-        noiseGain.connect(this.masterGain);
+        // 2. Gentle Twilight Cicada / Cricket Pulses
+        const cricketLoop = () => {
+            if (!this.ctx || this.isMuted) return;
+            const now = this.ctx.currentTime;
+            if (Math.random() > 0.35) {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
 
-        noise.start();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(4600 + Math.random() * 400, now);
+
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.012, now + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+
+                osc.connect(gain);
+                gain.connect(this.ambientGain);
+
+                osc.start(now);
+                osc.stop(now + 0.26);
+            }
+            setTimeout(cricketLoop, 2000 + Math.random() * 3000);
+        };
+        cricketLoop();
     }
 
     startMusic() {
@@ -117,53 +151,53 @@ class SoundEngine {
         this.isMusicPlaying = true;
         this.step = 0;
 
-        const loop = () => {
+        const playStep = () => {
             if (!this.isMusicPlaying || !this.ctx) return;
 
             const now = this.ctx.currentTime;
             const bar = Math.floor(this.step / 16) % 4;
             const stepInBar = this.step % 16;
-            const chord = this.chordProgression[bar];
+            const chord = this.chords[bar];
 
-            // 1. Rhodes Keyboard Chords on beats 0 and 6 (gentle syncopation)
+            // 1. Warm Rhodes Jazz Chords (Beats 0 and 6)
             if (stepInBar === 0 || stepInBar === 6) {
-                const vel = (stepInBar === 0) ? 0.18 : 0.12;
-                this.playRhodesChord(now, chord, vel);
+                const vel = (stepInBar === 0) ? 0.16 : 0.11;
+                this.playRhodes(now, chord, vel);
             }
 
-            // 2. Lo-Fi Drums (Kick, Rim/Snare, Shaker)
-            // Kick on 0, 10
-            if (stepInBar === 0 || stepInBar === 10) {
-                this.playLofiKick(now);
-            }
-            // Soft Snare / Rimshot on 4, 12
-            if (stepInBar === 4 || stepInBar === 12) {
-                this.playLofiSnare(now);
-            }
-            // Gentle closed hat on every 2 steps with chill swing
-            if (stepInBar % 2 === 0) {
-                const isAccent = (stepInBar % 4 === 2);
-                this.playLofiHat(now, isAccent);
-            }
-
-            // 3. Sub Bass on 0 and 8
+            // 2. Warm Sub Bass
             if (stepInBar === 0 || stepInBar === 8) {
-                this.playSubBass(now, this.bassNotes[bar]);
+                const bassFreq = this.bassLines[(bar * 4) + (stepInBar === 0 ? 0 : 2)];
+                this.playBass(now, bassFreq);
             }
 
-            // 4. Occasional sweet melodic chime
+            // 3. Relaxed Lo-Fi Chillhop Drum Beat
+            // Warm sub kick on 0, 10
+            if (stepInBar === 0 || stepInBar === 10) {
+                this.playKick(now);
+            }
+            // Brushed Snare on 4, 12
+            if (stepInBar === 4 || stepInBar === 12) {
+                this.playSnare(now);
+            }
+            // Soft Hi-Hat with gentle swing
+            if (stepInBar % 2 === 0) {
+                this.playHat(now, stepInBar % 4 === 2);
+            }
+
+            // 4. Delicate Sunset Acoustic Bell Chimes
             if (stepInBar === 2 || stepInBar === 14) {
-                if (Math.random() > 0.4) {
+                if (Math.random() > 0.45) {
                     const note = chord[Math.floor(Math.random() * chord.length)] * 1.5;
                     this.playBell(now, note);
                 }
             }
 
             this.step++;
-            this.timer = setTimeout(loop, this.stepTime * 1000);
+            this.timer = setTimeout(playStep, this.stepTime * 1000);
         };
 
-        loop();
+        playStep();
     }
 
     stopMusic() {
@@ -174,83 +208,79 @@ class SoundEngine {
         }
     }
 
-    // Warm Rhodes Piano Note
-    playRhodesChord(time, freqs, vol = 0.15) {
+    // Warm Rhodes Piano Synth with gentle chorus vibrato
+    playRhodes(time, freqs, vol = 0.14) {
         if (this.isMuted) return;
 
-        freqs.forEach((freq, idx) => {
+        freqs.forEach((freq, i) => {
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             const filter = this.ctx.createBiquadFilter();
 
             osc.type = 'sine';
-            // Slight detune for warm vintage character
-            osc.frequency.setValueAtTime(freq + (idx % 2 === 0 ? 0.3 : -0.3), time);
+            // Subtle vintage detuning
+            osc.frequency.setValueAtTime(freq + (i % 2 === 0 ? 0.4 : -0.4), time);
 
             filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(900, time);
-            filter.frequency.exponentialRampToValueAtTime(300, time + 1.6);
+            filter.frequency.setValueAtTime(850, time);
+            filter.frequency.exponentialRampToValueAtTime(320, time + 2.0);
 
             gain.gain.setValueAtTime(0, time);
-            gain.gain.linearRampToValueAtTime(vol / freqs.length, time + 0.04);
-            gain.gain.exponentialRampToValueAtTime(0.0001, time + 1.8);
+            gain.gain.linearRampToValueAtTime(vol / freqs.length, time + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 2.2);
 
             osc.connect(filter);
             filter.connect(gain);
             gain.connect(this.musicGain);
 
             osc.start(time);
-            osc.stop(time + 1.85);
+            osc.stop(time + 2.25);
         });
     }
 
-    playSubBass(time, freq) {
+    playBass(time, freq) {
         if (this.isMuted) return;
-
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
 
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(freq, time);
 
-        gain.gain.setValueAtTime(0.28, time);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.8);
+        gain.gain.setValueAtTime(0.24, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 1.1);
 
         osc.connect(gain);
         gain.connect(this.musicGain);
 
         osc.start(time);
-        osc.stop(time + 0.85);
+        osc.stop(time + 1.15);
     }
 
-    playLofiKick(time) {
+    playKick(time) {
         if (this.isMuted) return;
-
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
 
-        osc.frequency.setValueAtTime(95, time);
-        osc.frequency.exponentialRampToValueAtTime(36, time + 0.12);
+        osc.frequency.setValueAtTime(85, time);
+        osc.frequency.exponentialRampToValueAtTime(34, time + 0.14);
 
-        gain.gain.setValueAtTime(0.4, time);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+        gain.gain.setValueAtTime(0.35, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.2);
 
         osc.connect(gain);
         gain.connect(this.musicGain);
 
         osc.start(time);
-        osc.stop(time + 0.19);
+        osc.stop(time + 0.21);
     }
 
-    playLofiSnare(time) {
+    playSnare(time) {
         if (this.isMuted) return;
-
-        // Soft filtered noise snap
-        const bufferSize = this.ctx.sampleRate * 0.08;
+        const bufferSize = this.ctx.sampleRate * 0.09;
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
-            data[i] = (Math.random() * 2 - 1) * 0.4;
+            data[i] = (Math.random() * 2 - 1) * 0.35;
         }
 
         const noise = this.ctx.createBufferSource();
@@ -258,35 +288,34 @@ class SoundEngine {
 
         const filter = this.ctx.createBiquadFilter();
         filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(1600, time);
-        filter.Q.value = 1.2;
+        filter.frequency.setValueAtTime(1400, time);
+        filter.Q.value = 1.0;
 
         const gain = this.ctx.createGain();
-        gain.gain.setValueAtTime(0.18, time);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+        gain.gain.setValueAtTime(0.14, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.09);
 
         noise.connect(filter);
         filter.connect(gain);
         gain.connect(this.musicGain);
 
         noise.start(time);
-        noise.stop(time + 0.09);
+        noise.stop(time + 0.095);
     }
 
-    playLofiHat(time, accent = false) {
+    playHat(time, accent = false) {
         if (this.isMuted) return;
-
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         const filter = this.ctx.createBiquadFilter();
 
         osc.type = 'highpass';
-        osc.frequency.setValueAtTime(8000, time);
+        osc.frequency.setValueAtTime(7500, time);
 
         filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(7500, time);
+        filter.frequency.setValueAtTime(6500, time);
 
-        const vol = accent ? 0.05 : 0.025;
+        const vol = accent ? 0.04 : 0.02;
         gain.gain.setValueAtTime(vol, time);
         gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
 
@@ -300,24 +329,23 @@ class SoundEngine {
 
     playBell(time, freq) {
         if (this.isMuted) return;
-
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
 
         osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, time);
 
-        gain.gain.setValueAtTime(0.08, time);
-        gain.gain.exponentialRampToValueAtTime(0.0001, time + 1.2);
+        gain.gain.setValueAtTime(0.06, time);
+        gain.gain.exponentialRampToValueAtTime(0.0001, time + 1.4);
 
         osc.connect(gain);
         gain.connect(this.musicGain);
 
         osc.start(time);
-        osc.stop(time + 1.25);
+        osc.stop(time + 1.45);
     }
 
-    // Peaceful milestone chime when cycling near a station
+    // Peaceful milestone chime
     playStationChime() {
         if (this.isMuted) return;
         this.ensureContext();
@@ -332,14 +360,14 @@ class SoundEngine {
             osc.type = 'sine';
             osc.frequency.setValueAtTime(freq, t);
 
-            gain.gain.setValueAtTime(0.12, t);
-            gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+            gain.gain.setValueAtTime(0.1, t);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
 
             osc.connect(gain);
             gain.connect(this.sfxGain);
 
             osc.start(t);
-            osc.stop(t + 0.75);
+            osc.stop(t + 0.85);
         });
     }
 
@@ -353,9 +381,9 @@ class SoundEngine {
         const gain = this.ctx.createGain();
 
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.setValueAtTime(540, now);
 
-        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.setValueAtTime(0.05, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
 
         osc.connect(gain);
