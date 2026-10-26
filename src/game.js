@@ -1,5 +1,6 @@
 /**
  * Phaser Game Configuration and Initialization
+ * Lo-Fi Relaxed Career Journey
  */
 
 window.addEventListener('load', () => {
@@ -10,7 +11,7 @@ window.addEventListener('load', () => {
         parent: 'game-container',
         pixelArt: true,
         roundPixels: true,
-        backgroundColor: '#030712',
+        backgroundColor: '#09081e',
         scale: {
             mode: Phaser.Scale.FIT,
             autoCenter: Phaser.Scale.CENTER_BOTH
@@ -18,11 +19,11 @@ window.addEventListener('load', () => {
         physics: {
             default: 'arcade',
             arcade: {
-                gravity: { y: 1100 },
+                gravity: { y: 0 }, // Calm flat road, no gravity falling hazards
                 debug: false
             }
         },
-        scene: [BootScene, GameScene, VictoryScene]
+        scene: [BootScene, GameScene]
     };
 
     window.game = new Phaser.Game(config);

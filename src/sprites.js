@@ -1,976 +1,488 @@
 /**
- * Procedural Pixel Art and Texture Generator for Pranesh's World Runner
- * Generates crisp 8-bit/16-bit cyber aesthetics without needing any image downloads!
+ * Lo-Fi Artwork and Sprite Generator for Pranesh's Journey
+ * Procedurally generates an animated cyclist, scenic road, street lamps, and pavilions.
  */
 
 class SpriteGenerator {
     static generateAll(scene) {
-        this.generatePlayerFrames(scene);
-        this.generateEnvironmentTiles(scene);
-        this.generateCollectibles(scene);
-        this.generateEnemies(scene);
-        this.generateInteractiveObjects(scene);
-        this.generateParticles(scene);
+        this.generateCyclist(scene);
+        this.generateEnvironment(scene);
         this.generateBackgrounds(scene);
         this.registerAnimations(scene);
     }
 
-    // Helper to create a canvas texture
-    static createCanvas(width, height) {
+    static createCanvas(w, h) {
         const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = w;
+        canvas.height = h;
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = false;
         return { canvas, ctx };
     }
 
     // ==========================================
-    // 1. PLAYER SPRITES (Pranesh the Cyber Runner)
+    // 1. CYCLIST (Pranesh riding a bicycle)
     // ==========================================
-    static generatePlayerFrames(scene) {
-        const W = 32;
-        const H = 40;
+    static generateCyclist(scene) {
+        const W = 64;
+        const H = 48;
 
-        // Draw Pranesh base character
-        const drawPranesh = (ctx, animState = 'idle', frame = 0) => {
-            ctx.clearRect(0, 0, W, H);
+        // 8 frames for smooth pedaling loop
+        for (let frame = 0; frame < 8; frame++) {
+            const { canvas, ctx } = this.createCanvas(W, H);
 
-            // Coordinates
-            let headY = 8;
-            let torsoY = 17;
-            let legL_Y = 28;
-            let legR_Y = 28;
-            let legL_X = 10;
-            let legR_X = 18;
-            let armL_X = 6;
-            let armR_X = 22;
-            let armL_Y = 18;
-            let armR_Y = 18;
-            let bodyAngle = 0;
+            // Ground shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+            ctx.beginPath();
+            ctx.ellipse(32, 45, 26, 4, 0, 0, Math.PI * 2);
+            ctx.fill();
 
-            if (animState === 'idle') {
-                const bounce = (frame % 2 === 0) ? 0 : 1;
-                headY += bounce;
-                torsoY += bounce;
-            } else if (animState === 'run') {
-                // 6-frame run cycle
-                const offsets = [
-                    { lY: -2, rY: 2, lX: -3, rX: 3, bob: 0, armL: 4, armR: -4 },
-                    { lY: 0,  rY: 0, lX: -1, rX: 1, bob: -1, armL: 2, armR: -2 },
-                    { lY: 2,  rY: -2, lX: 1, rX: -1, bob: -2, armL: -1, armR: 1 },
-                    { lY: 2,  rY: -2, lX: 3, rX: -3, bob: 0, armL: -4, armR: 4 },
-                    { lY: 0,  rY: 0, lX: 1, rX: -1, bob: -1, armL: -2, armR: 2 },
-                    { lY: -2, rY: 2, lX: -1, rX: 1, bob: -2, armL: 1, armR: -1 }
-                ][frame % 6];
+            // Wheels (Radius 10)
+            const rearWheelX = 14;
+            const frontWheelX = 50;
+            const wheelY = 35;
+            const wheelR = 9;
 
-                headY += offsets.bob;
-                torsoY += offsets.bob;
-                legL_Y += offsets.lY;
-                legR_Y += offsets.rY;
-                legL_X += offsets.lX;
-                legR_X += offsets.rX;
-                armL_Y += offsets.armL;
-                armR_Y += offsets.armR;
-            } else if (animState === 'jump') {
-                headY -= 2;
-                torsoY -= 2;
-                legL_Y -= 3;
-                legR_Y -= 1;
-                armL_Y -= 4;
-                armR_Y -= 4;
-            } else if (animState === 'fall') {
-                legL_Y += 1;
-                legR_Y += 2;
-                armL_Y -= 3;
-                armR_Y -= 3;
-            } else if (animState === 'dash') {
-                // Leaning forward heavily with speed trail
-                headY += 2;
-                torsoY += 3;
-                legL_X -= 4;
-                legR_X -= 7;
-                legL_Y -= 2;
-                legR_Y += 1;
-                armL_X -= 4;
-                armR_X += 3;
-                bodyAngle = 0.2;
-            } else if (animState === 'slide') {
-                headY += 8;
-                torsoY += 9;
-                legL_X += 4;
-                legR_X -= 4;
-                legL_Y += 6;
-                legR_Y += 6;
-            }
-
-            // --- Shadow on ground ---
-            if (animState !== 'jump' && animState !== 'fall') {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            // Draw wheel with spinning spokes
+            const drawWheel = (wx, wy) => {
+                // Tire
+                ctx.strokeStyle = '#1e293b';
+                ctx.lineWidth = 2.5;
                 ctx.beginPath();
-                ctx.ellipse(16, 38, 10, 3, 0, 0, Math.PI * 2);
-                ctx.fill();
-            }
+                ctx.arc(wx, wy, wheelR, 0, Math.PI * 2);
+                ctx.stroke();
 
-            // --- Legs & Tech Cargo Pants ---
-            ctx.fillStyle = '#1e293b'; // Slate dark pants
-            // Left leg
-            ctx.fillRect(legL_X, legL_Y, 5, 8);
-            // Right leg
-            ctx.fillRect(legR_X, legR_Y, 5, 8);
+                // Rim
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(wx, wy, wheelR - 1.5, 0, Math.PI * 2);
+                ctx.stroke();
 
-            // Knee pads (neon cyan accents)
-            ctx.fillStyle = '#06b6d4';
-            ctx.fillRect(legL_X, legL_Y + 3, 5, 2);
-            ctx.fillRect(legR_X, legR_Y + 3, 5, 2);
+                // Hub
+                ctx.fillStyle = '#64748b';
+                ctx.fillRect(wx - 1.5, wy - 1.5, 3, 3);
 
-            // Sneakers / Thruster Boots
-            ctx.fillStyle = '#0f172a';
-            ctx.fillRect(legL_X - 1, legL_Y + 7, 7, 3);
-            ctx.fillRect(legR_X - 1, legR_Y + 7, 7, 3);
-            // Thruster soles
-            ctx.fillStyle = (animState === 'dash' || animState === 'jump') ? '#00f0ff' : '#ec4899';
-            ctx.fillRect(legL_X - 1, legL_Y + 9, 7, 2);
-            ctx.fillRect(legR_X - 1, legR_Y + 9, 7, 2);
+                // Spokes rotating based on frame
+                const angleOffset = (frame / 8) * Math.PI;
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 0.8;
+                for (let a = 0; a < Math.PI * 2; a += Math.PI / 3) {
+                    const ang = a + angleOffset;
+                    ctx.beginPath();
+                    ctx.moveTo(wx, wy);
+                    ctx.lineTo(wx + Math.cos(ang) * (wheelR - 1.5), wy + Math.sin(ang) * (wheelR - 1.5));
+                    ctx.stroke();
+                }
+            };
 
-            // --- Torso / Cyber Hoodie ---
-            ctx.fillStyle = '#0f172a'; // Deep hoodie
-            ctx.fillRect(10, torsoY, 13, 12);
-            // Neon cyan inner trim & zipper
-            ctx.fillStyle = '#00f0ff';
-            ctx.fillRect(16, torsoY + 2, 2, 10);
-            // Jacket highlights (magenta / cyan stripes)
-            ctx.fillStyle = '#8b5cf6';
-            ctx.fillRect(10, torsoY + 1, 2, 11);
-            ctx.fillRect(21, torsoY + 1, 2, 11);
+            drawWheel(rearWheelX, wheelY);
+            drawWheel(frontWheelX, wheelY);
 
-            // Glowing cyber badge 'P' on chest
-            ctx.fillStyle = '#38bdf8';
-            ctx.fillRect(12, torsoY + 4, 3, 4);
-
-            // --- Arms ---
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(armL_X, armL_Y, 4, 9);
-            ctx.fillRect(armR_X, armR_Y, 4, 9);
-            // Gloves (cyan tips)
-            ctx.fillStyle = '#00f0ff';
-            ctx.fillRect(armL_X, armL_Y + 7, 4, 2);
-            ctx.fillRect(armR_X, armR_Y + 7, 4, 2);
-
-            // --- Head & Hair ---
-            // Neck
-            ctx.fillStyle = '#e29578';
-            ctx.fillRect(14, headY + 7, 5, 3);
-            // Face
-            ctx.fillStyle = '#f8b29b';
-            ctx.fillRect(12, headY, 9, 8);
-
-            // Hair (Stylish dark textured hair with cyan streak)
-            ctx.fillStyle = '#0f172a';
-            ctx.fillRect(11, headY - 4, 11, 5); // top
-            ctx.fillRect(10, headY - 2, 3, 6);  // back
-            ctx.fillRect(21, headY - 2, 2, 4);  // side
-            // Cyan cyber streak in hair!
-            ctx.fillStyle = '#00f0ff';
-            ctx.fillRect(14, headY - 5, 4, 2);
-            ctx.fillRect(17, headY - 3, 2, 2);
-
-            // Cyber Visor / Smart Goggles (Glowing cyan & amber)
-            ctx.fillStyle = '#00f0ff';
-            ctx.fillRect(15, headY + 2, 7, 3);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(17, headY + 2, 2, 1); // reflection glint
-
-            // Headset / Comm unit
-            ctx.fillStyle = '#ec4899';
-            ctx.fillRect(10, headY + 2, 2, 4);
-        };
-
-        // 1. Idle (4 frames)
-        for (let i = 0; i < 4; i++) {
-            const { canvas, ctx } = this.createCanvas(W, H);
-            drawPranesh(ctx, 'idle', i);
-            scene.textures.addCanvas(`player_idle_${i}`, canvas);
-        }
-
-        // 2. Run (6 frames)
-        for (let i = 0; i < 6; i++) {
-            const { canvas, ctx } = this.createCanvas(W, H);
-            drawPranesh(ctx, 'run', i);
-            scene.textures.addCanvas(`player_run_${i}`, canvas);
-        }
-
-        // 3. Jump (1 frame)
-        {
-            const { canvas, ctx } = this.createCanvas(W, H);
-            drawPranesh(ctx, 'jump', 0);
-            scene.textures.addCanvas('player_jump', canvas);
-        }
-
-        // 4. Fall (1 frame)
-        {
-            const { canvas, ctx } = this.createCanvas(W, H);
-            drawPranesh(ctx, 'fall', 0);
-            scene.textures.addCanvas('player_fall', canvas);
-        }
-
-        // 5. Dash (1 frame with speed lines & chromatic aberration)
-        {
-            const { canvas, ctx } = this.createCanvas(W, H);
-            // Speed trail lines
-            ctx.fillStyle = 'rgba(0, 240, 255, 0.35)';
-            ctx.fillRect(0, 16, 12, 2);
-            ctx.fillRect(2, 24, 10, 2);
-            ctx.fillRect(1, 32, 14, 2);
-            drawPranesh(ctx, 'dash', 0);
-            scene.textures.addCanvas('player_dash', canvas);
-        }
-
-        // 6. Slide (1 frame)
-        {
-            const { canvas, ctx } = this.createCanvas(W, H);
-            drawPranesh(ctx, 'slide', 0);
-            // Sparks underneath
-            ctx.fillStyle = '#f59e0b';
-            ctx.fillRect(6, 36, 3, 2);
-            ctx.fillRect(2, 37, 2, 1);
-            scene.textures.addCanvas('player_slide', canvas);
-        }
-    }
-
-    // ==========================================
-    // 2. ENVIRONMENT TILES & PLATFORMS
-    // ==========================================
-    static generateEnvironmentTiles(scene) {
-        // Tile 1: Kernel & OS Platform (Deep Navy Silicon with Cyan Circuit Traces)
-        {
-            const { canvas, ctx } = this.createCanvas(32, 32);
-            // Base dark silicon plate
-            ctx.fillStyle = '#0a0f1d';
-            ctx.fillRect(0, 0, 32, 32);
-            // Top metal rim
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(0, 0, 32, 4);
-            ctx.fillStyle = '#00f0ff';
-            ctx.fillRect(0, 0, 32, 1); // Neon top edge
-
-            // Circuit board traces
+            // Bicycle Frame (Sleek slate / teal vintage commuter)
             ctx.strokeStyle = '#0284c7';
-            ctx.lineWidth = 1;
+            ctx.lineWidth = 2.5;
             ctx.beginPath();
-            ctx.moveTo(4, 32);
-            ctx.lineTo(4, 16);
-            ctx.lineTo(14, 6);
-            ctx.lineTo(26, 6);
-            ctx.lineTo(26, 20);
+            // Chainstay: rear hub to bottom bracket (BB)
+            const bbX = 30;
+            const bbY = 35;
+            ctx.moveTo(rearWheelX, wheelY);
+            ctx.lineTo(bbX, bbY);
+            // Seat tube: BB to saddle post
+            const saddlePostX = 26;
+            const saddlePostY = 22;
+            ctx.lineTo(saddlePostX, saddlePostY);
+            // Seat stay: saddle post to rear hub
+            ctx.lineTo(rearWheelX, wheelY);
+            // Down tube: BB to head tube
+            const headX = 46;
+            const headY = 18;
+            ctx.moveTo(bbX, bbY);
+            ctx.lineTo(headX, headY);
+            // Top tube: saddle post to head tube
+            ctx.moveTo(saddlePostX, saddlePostY);
+            ctx.lineTo(headX, headY);
+            // Fork: head tube to front wheel
+            ctx.lineTo(frontWheelX, wheelY);
             ctx.stroke();
 
-            // Solder pads / microchip pins
-            ctx.fillStyle = '#38bdf8';
-            ctx.fillRect(3, 15, 3, 3);
-            ctx.fillRect(25, 19, 3, 3);
-            ctx.fillRect(16, 24, 4, 4);
-
-            // Hex screws in corners
-            ctx.fillStyle = '#64748b';
-            ctx.fillRect(2, 6, 2, 2);
-            ctx.fillRect(28, 6, 2, 2);
-
-            scene.textures.addCanvas('tile_kernel', canvas);
-        }
-
-        // Tile 2: Blockchain Consensus Block (Violet / Gold Cryptographic Block)
-        {
-            const { canvas, ctx } = this.createCanvas(32, 32);
-            // Base obsidian block
-            ctx.fillStyle = '#170b28';
-            ctx.fillRect(0, 0, 32, 32);
-            // Golden consensus rim
-            ctx.fillStyle = '#f59e0b';
-            ctx.fillRect(0, 0, 32, 3);
-            ctx.fillStyle = '#fbbf24';
-            ctx.fillRect(0, 0, 32, 1);
-
-            // Cryptographic chain link engraving
-            ctx.strokeStyle = '#a855f7';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(6, 8, 20, 16);
-            ctx.strokeStyle = '#d946ef';
-            ctx.strokeRect(10, 12, 12, 8);
-
-            // Center hash hash mark (Genesis cube)
-            ctx.fillStyle = '#facc15';
-            ctx.fillRect(14, 14, 4, 4);
-
-            scene.textures.addCanvas('tile_blockchain', canvas);
-        }
-
-        // Tile 3: Proprietary Vault Sector (Stealth Matte Metal with Warning Stripes)
-        {
-            const { canvas, ctx } = this.createCanvas(32, 32);
-            ctx.fillStyle = '#18181b';
-            ctx.fillRect(0, 0, 32, 32);
-
-            // Warning diagonal stripes on top ledge
-            for (let x = -8; x < 40; x += 8) {
-                ctx.fillStyle = '#e11d48';
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x + 5, 0);
-                ctx.lineTo(x, 5);
-                ctx.lineTo(x - 5, 5);
-                ctx.fill();
-            }
-
-            // Laser conduit line
-            ctx.fillStyle = '#f43f5e';
-            ctx.fillRect(0, 6, 32, 1);
-
-            // Heavy security bolts
-            ctx.fillStyle = '#3f3f46';
-            ctx.fillRect(4, 12, 4, 4);
-            ctx.fillRect(24, 12, 4, 4);
-            ctx.fillRect(4, 24, 4, 4);
-            ctx.fillRect(24, 24, 4, 4);
-
-            scene.textures.addCanvas('tile_proprietary', canvas);
-        }
-
-        // Tile 4: Innovation Nexus Platform (Iridescent Neon Teal / Magenta Glass)
-        {
-            const { canvas, ctx } = this.createCanvas(32, 32);
-            // Glass translucent gradient
-            const grad = ctx.createLinearGradient(0, 0, 0, 32);
-            grad.addColorStop(0, '#042f2e');
-            grad.addColorStop(1, '#111827');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, 32, 32);
-
-            // Glowing teal edge
-            ctx.fillStyle = '#2dd4bf';
-            ctx.fillRect(0, 0, 32, 2);
-            ctx.fillStyle = '#f43f5e';
-            ctx.fillRect(0, 2, 32, 1);
-
-            // Holographic grid
-            ctx.strokeStyle = 'rgba(45, 212, 191, 0.25)';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(4, 6, 24, 22);
-            ctx.beginPath();
-            ctx.moveTo(16, 6);
-            ctx.lineTo(16, 28);
-            ctx.moveTo(4, 17);
-            ctx.lineTo(28, 17);
-            ctx.stroke();
-
-            scene.textures.addCanvas('tile_nexus', canvas);
-        }
-
-        // Floating Thin Platform (32x12)
-        {
-            const { canvas, ctx } = this.createCanvas(32, 12);
-            ctx.fillStyle = '#0f172a';
-            ctx.fillRect(0, 0, 32, 12);
-            ctx.fillStyle = '#00f0ff';
-            ctx.fillRect(0, 0, 32, 2);
-            // Thruster exhausts
-            ctx.fillStyle = '#38bdf8';
-            ctx.fillRect(4, 10, 6, 2);
-            ctx.fillRect(22, 10, 6, 2);
-            scene.textures.addCanvas('tile_floating', canvas);
-        }
-
-        // Spring Bounce Pad (32x16)
-        {
-            const { canvas, ctx } = this.createCanvas(32, 16);
-            // Base plate
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(2, 12, 28, 4);
-            // Neon coil
-            ctx.strokeStyle = '#22c55e';
+            // Handlebars & Stem
+            ctx.strokeStyle = '#64748b';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(8, 12);
-            ctx.lineTo(16, 7);
-            ctx.lineTo(24, 12);
+            ctx.moveTo(headX, headY);
+            ctx.lineTo(headX - 1, headY - 5);
+            ctx.lineTo(headX + 4, headY - 6);
             ctx.stroke();
-            // Launch plate
-            ctx.fillStyle = '#4ade80';
-            ctx.fillRect(4, 4, 24, 4);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(8, 5, 16, 2);
-            scene.textures.addCanvas('tile_spring', canvas);
-        }
 
-        // Hazard Spikes (16x16)
-        {
-            const { canvas, ctx } = this.createCanvas(16, 16);
-            ctx.fillStyle = '#ef4444';
-            ctx.beginPath();
-            ctx.moveTo(0, 16);
-            ctx.lineTo(4, 2);
-            ctx.lineTo(8, 16);
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(8, 16);
-            ctx.lineTo(12, 2);
-            ctx.lineTo(16, 16);
-            ctx.fill();
-
-            // Glow core
-            ctx.fillStyle = '#fca5a5';
-            ctx.fillRect(3, 4, 2, 4);
-            ctx.fillRect(11, 4, 2, 4);
-            scene.textures.addCanvas('tile_spikes', canvas);
-        }
-    }
-
-    // ==========================================
-    // 3. COLLECTIBLES & POWERUPS
-    // ==========================================
-    static generateCollectibles(scene) {
-        // 1. Kernel Chip (16x16, 4 frames rotation)
-        for (let i = 0; i < 4; i++) {
-            const { canvas, ctx } = this.createCanvas(16, 16);
-            const scaleX = [1, 0.6, 0.2, 0.6][i];
-            ctx.save();
-            ctx.translate(8, 8);
-            ctx.scale(scaleX, 1);
-
-            // Chip body
-            ctx.fillStyle = '#0284c7';
-            ctx.fillRect(-6, -6, 12, 12);
-            // Core die
-            ctx.fillStyle = '#38bdf8';
-            ctx.fillRect(-3, -3, 6, 6);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(-1, -1, 2, 2);
-
-            // Pins
-            ctx.fillStyle = '#fbbf24';
-            ctx.fillRect(-7, -4, 1, 2);
-            ctx.fillRect(-7, 2, 1, 2);
-            ctx.fillRect(6, -4, 1, 2);
-            ctx.fillRect(6, 2, 1, 2);
-
-            ctx.restore();
-            scene.textures.addCanvas(`coin_kernel_${i}`, canvas);
-        }
-
-        // 2. Blockchain Crystal Token (16x16, 4 frames rotation)
-        for (let i = 0; i < 4; i++) {
-            const { canvas, ctx } = this.createCanvas(16, 16);
-            const scaleX = [1, 0.6, 0.15, 0.6][i];
-            ctx.save();
-            ctx.translate(8, 8);
-            ctx.scale(scaleX, 1);
-
-            // Diamond crystal
-            ctx.fillStyle = '#d946ef';
-            ctx.beginPath();
-            ctx.moveTo(0, -7);
-            ctx.lineTo(6, 0);
-            ctx.lineTo(0, 7);
-            ctx.lineTo(-6, 0);
-            ctx.closePath();
-            ctx.fill();
-
-            // Inner facet
-            ctx.fillStyle = '#f472b6';
-            ctx.beginPath();
-            ctx.moveTo(0, -5);
-            ctx.lineTo(4, 0);
-            ctx.lineTo(0, 5);
-            ctx.lineTo(-4, 0);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(-1, -2, 2, 4);
-
-            ctx.restore();
-            scene.textures.addCanvas(`coin_crypto_${i}`, canvas);
-        }
-
-        // 3. Secret Dossier (Proprietary Document Capsule - 20x20)
-        {
-            const { canvas, ctx } = this.createCanvas(20, 20);
-            // Floppy / Secret dossier binder
-            ctx.fillStyle = '#dc2626';
-            ctx.fillRect(2, 2, 16, 16);
-            // Redacted tape
-            ctx.fillStyle = '#111827';
-            ctx.fillRect(4, 6, 12, 3);
-            ctx.fillRect(4, 11, 8, 3);
-            // Warning lock
-            ctx.fillStyle = '#fbbf24';
-            ctx.fillRect(12, 11, 4, 4);
-            // Glint
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(3, 3, 2, 2);
-            scene.textures.addCanvas('secret_dossier', canvas);
-        }
-
-        // 4. Overclock Battery Power-up (16x20)
-        {
-            const { canvas, ctx } = this.createCanvas(16, 20);
-            // Battery shell
-            ctx.fillStyle = '#059669';
-            ctx.fillRect(2, 4, 12, 14);
-            // Terminal top
-            ctx.fillStyle = '#10b981';
-            ctx.fillRect(5, 1, 6, 3);
-            // Lightning bolt / overclock icon
-            ctx.fillStyle = '#facc15';
-            ctx.beginPath();
-            ctx.moveTo(9, 6);
-            ctx.lineTo(5, 12);
-            ctx.lineTo(9, 12);
-            ctx.lineTo(7, 16);
-            ctx.lineTo(12, 10);
-            ctx.lineTo(8, 10);
-            ctx.closePath();
-            ctx.fill();
-            scene.textures.addCanvas('powerup_battery', canvas);
-        }
-    }
-
-    // ==========================================
-    // 4. ENEMIES & HAZARDS
-    // ==========================================
-    static generateEnemies(scene) {
-        // Glitch Bug (24x20, 2 frames walking)
-        for (let frame = 0; frame < 2; frame++) {
-            const { canvas, ctx } = this.createCanvas(24, 20);
-            const legOffset = frame === 0 ? 0 : 2;
-
-            // Bug Body (glitching red/magenta matrix)
-            ctx.fillStyle = '#dc2626';
-            ctx.fillRect(5, 6, 14, 9);
-            ctx.fillStyle = '#ef4444';
-            ctx.fillRect(7, 7, 10, 7);
-
-            // Glowing evil glitch eye
+            // Warm Headlight
             ctx.fillStyle = '#fef08a';
-            ctx.fillRect(13, 8, 4, 3);
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(15, 9, 2, 2);
-
-            // Antennae
-            ctx.fillStyle = '#f43f5e';
-            ctx.fillRect(15, 2, 2, 4);
-            ctx.fillRect(17, 1, 2, 2);
-
-            // Legs
-            ctx.fillStyle = '#991b1b';
-            // Leg 1
-            ctx.fillRect(3, 11 + legOffset, 2, 6);
-            // Leg 2
-            ctx.fillRect(10, 13 - legOffset, 2, 6);
-            // Leg 3
-            ctx.fillRect(19, 11 + legOffset, 2, 6);
-
-            // Glitch digital artifact sparks
-            ctx.fillStyle = '#38bdf8';
-            ctx.fillRect(1, 4, 2, 2);
-            ctx.fillRect(21, 14, 2, 2);
-
-            scene.textures.addCanvas(`enemy_bug_${frame}`, canvas);
-        }
-
-        // Security Drone (28x20, 2 frames hovering)
-        for (let frame = 0; frame < 2; frame++) {
-            const { canvas, ctx } = this.createCanvas(28, 20);
-            const hover = frame === 0 ? 0 : 1;
-
-            // Drone spherical hull
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(6, 4 + hover, 16, 10);
-            ctx.fillStyle = '#334155';
-            ctx.fillRect(8, 5 + hover, 12, 8);
-
-            // Sweeping laser sensor eye
-            ctx.fillStyle = '#e11d48';
-            ctx.fillRect(11, 7 + hover, 6, 4);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(13, 8 + hover, 2, 2);
-
-            // Rotors / Antigravity thrusters
-            ctx.fillStyle = '#0284c7';
-            ctx.fillRect(2, 2 + hover, 6, 2);
-            ctx.fillRect(20, 2 + hover, 6, 2);
-
-            // Scanning laser cone under drone
-            ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
+            ctx.fillRect(headX + 5, headY - 5, 3, 3);
+            // Light cone
+            ctx.fillStyle = 'rgba(254, 240, 138, 0.15)';
             ctx.beginPath();
-            ctx.moveTo(14, 14 + hover);
-            ctx.lineTo(4, 20);
-            ctx.lineTo(24, 20);
+            ctx.moveTo(headX + 8, headY - 4);
+            ctx.lineTo(W, headY - 8);
+            ctx.lineTo(W, headY + 12);
             ctx.closePath();
             ctx.fill();
 
-            scene.textures.addCanvas(`enemy_drone_${frame}`, canvas);
-        }
-    }
+            // Saddle
+            ctx.fillStyle = '#78350f'; // Leather brown
+            ctx.beginPath();
+            ctx.ellipse(saddlePostX - 1, saddlePostY - 1, 5, 2, -0.1, 0, Math.PI * 2);
+            ctx.fill();
 
-    // ==========================================
-    // 5. INTERACTIVE OBJECTS & TERMINALS
-    // ==========================================
-    static generateInteractiveObjects(scene) {
-        // Holographic Terminal (32x48)
-        {
-            const { canvas, ctx } = this.createCanvas(32, 48);
+            // Crank & Pedals calculation
+            const crankAngle = (frame / 8) * Math.PI * 2;
+            const crankLen = 6;
+            const pedal1X = bbX + Math.cos(crankAngle) * crankLen;
+            const pedal1Y = bbY + Math.sin(crankAngle) * crankLen;
+            const pedal2X = bbX - Math.cos(crankAngle) * crankLen;
+            const pedal2Y = bbY - Math.sin(crankAngle) * crankLen;
 
-            // Sleek pedestal stand
+            // Crank arm
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(pedal2X, pedal2Y);
+            ctx.lineTo(pedal1X, pedal1Y);
+            ctx.stroke();
+
+            // --- RIDER (Pranesh) ---
+            const hipX = saddlePostX;
+            const hipY = saddlePostY - 3;
+
+            // Torso (Comfortable forward lean)
+            const shoulderX = 35;
+            const shoulderY = 14;
+
+            // Back leg (pedal 2)
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(hipX, hipY);
+            // Knee
+            const knee2X = (hipX + pedal2X) / 2 + 2;
+            const knee2Y = Math.min(hipY, pedal2Y) - 1;
+            ctx.lineTo(knee2X, knee2Y);
+            ctx.lineTo(pedal2X, pedal2Y);
+            ctx.stroke();
+
+            // Torso / Cozy Jacket (Navy / Teal)
             ctx.fillStyle = '#0f172a';
-            ctx.fillRect(8, 24, 16, 20);
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(10, 26, 12, 16);
-            ctx.fillStyle = '#00f0ff';
-            ctx.fillRect(6, 44, 20, 4); // base plate
+            ctx.beginPath();
+            ctx.moveTo(hipX - 3, hipY);
+            ctx.lineTo(shoulderX, shoulderY - 2);
+            ctx.lineTo(shoulderX + 4, shoulderY + 2);
+            ctx.lineTo(hipX + 3, hipY + 1);
+            ctx.closePath();
+            ctx.fill();
 
-            // Glowing terminal keyboard / console
-            ctx.fillStyle = '#0284c7';
-            ctx.fillRect(8, 22, 16, 4);
-            ctx.fillStyle = '#38bdf8';
-            ctx.fillRect(10, 23, 12, 2);
+            // Scarf / Accent (warm amber)
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(shoulderX + 1, shoulderY - 4, 4, 3);
 
-            // Floating holographic screen
-            ctx.fillStyle = 'rgba(6, 182, 212, 0.35)';
-            ctx.fillRect(4, 2, 24, 18);
-            ctx.strokeStyle = '#00f0ff';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(4, 2, 24, 18);
+            // Front leg (pedal 1)
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.moveTo(hipX, hipY);
+            const knee1X = (hipX + pedal1X) / 2 + 3;
+            const knee1Y = Math.min(hipY, pedal1Y) - 2;
+            ctx.lineTo(knee1X, knee1Y);
+            ctx.lineTo(pedal1X, pedal1Y);
+            ctx.stroke();
 
-            // Holographic code lines
-            ctx.fillStyle = '#67e8f9';
-            ctx.fillRect(7, 5, 14, 2);
-            ctx.fillRect(7, 9, 18, 2);
-            ctx.fillRect(7, 13, 10, 2);
-
-            // Prompt icon "[E]" indicator
-            ctx.fillStyle = '#fbbf24';
-            ctx.fillRect(13, -2, 6, 2);
-
-            scene.textures.addCanvas('terminal_pedestal', canvas);
-        }
-
-        // Checkpoint Totem: Inactive (24x48)
-        {
-            const { canvas, ctx } = this.createCanvas(24, 48);
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(8, 8, 8, 36);
-            ctx.fillStyle = '#334155';
-            ctx.fillRect(4, 44, 16, 4);
-            // Inactive amber crystal
-            ctx.fillStyle = '#d97706';
-            ctx.fillRect(6, 2, 12, 8);
-            ctx.fillStyle = '#b45309';
-            ctx.fillRect(8, 4, 8, 4);
-            scene.textures.addCanvas('checkpoint_off', canvas);
-        }
-
-        // Checkpoint Totem: Active (24x48)
-        {
-            const { canvas, ctx } = this.createCanvas(24, 48);
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(8, 8, 8, 36);
-            ctx.fillStyle = '#00f0ff';
-            ctx.fillRect(10, 10, 4, 32); // Glowing conduit
-            ctx.fillStyle = '#334155';
-            ctx.fillRect(4, 44, 16, 4);
-            // Active brilliant cyan crystal with beacon light
-            ctx.fillStyle = '#00f0ff';
-            ctx.fillRect(6, 2, 12, 8);
+            // Shoes
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(9, 4, 6, 4);
-            scene.textures.addCanvas('checkpoint_on', canvas);
-        }
+            ctx.fillRect(pedal1X - 2, pedal1Y - 1, 5, 2);
 
-        // Grand Finish Portal / Uplink Nexus (64x96)
-        {
-            const { canvas, ctx } = this.createCanvas(64, 96);
-            // Giant cyber archway
-            const grad = ctx.createLinearGradient(0, 0, 64, 96);
-            grad.addColorStop(0, '#ec4899');
-            grad.addColorStop(0.5, '#8b5cf6');
-            grad.addColorStop(1, '#06b6d4');
+            // Arms holding handlebars
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(shoulderX + 2, shoulderY);
+            ctx.lineTo(headX + 2, headY - 5);
+            ctx.stroke();
 
-            ctx.strokeStyle = grad;
-            ctx.lineWidth = 6;
-            ctx.strokeRect(6, 6, 52, 86);
+            // Head & Cap / Hair
+            const headCenterX = shoulderX + 3;
+            const headCenterY = shoulderY - 7;
+            ctx.fillStyle = '#e29578'; // Skin
+            ctx.beginPath();
+            ctx.arc(headCenterX, headCenterY, 4, 0, Math.PI * 2);
+            ctx.fill();
 
-            // Glowing vortex interior
-            ctx.fillStyle = 'rgba(139, 92, 246, 0.25)';
-            ctx.fillRect(10, 10, 44, 80);
+            // Dark textured hair & headphones
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(headCenterX - 3, headCenterY - 5, 7, 4);
+            // Lo-fi headphones
+            ctx.fillStyle = '#ec4899';
+            ctx.fillRect(headCenterX - 1, headCenterY - 3, 3, 5);
 
-            // Swirl concentric frames
-            ctx.strokeStyle = '#00f0ff';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(16, 16, 32, 68);
-            ctx.strokeStyle = '#f43f5e';
-            ctx.strokeRect(22, 22, 20, 56);
-
-            // Uplink Text header
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 8px monospace';
-            ctx.textAlign = 'center';
-            ctx.fillText('UPLINK', 32, 20);
-
-            scene.textures.addCanvas('portal_finish', canvas);
+            scene.textures.addCanvas(`cyclist_pedal_${frame}`, canvas);
         }
     }
 
     // ==========================================
-    // 6. PARTICLES
+    // 2. ENVIRONMENT & MILESTONE PAVILIONS
     // ==========================================
-    static generateParticles(scene) {
-        // Spark
+    static generateEnvironment(scene) {
+        // Milestone Gazebo / Lantern Pavilion (80x120)
+        {
+            const { canvas, ctx } = this.createCanvas(80, 120);
+
+            // Wooden deck
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(4, 108, 72, 12);
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(8, 110, 64, 4);
+
+            // Pillars
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(10, 30, 6, 80);
+            ctx.fillRect(64, 30, 6, 80);
+
+            // Pagoda Roof
+            ctx.fillStyle = '#0284c7';
+            ctx.beginPath();
+            ctx.moveTo(0, 30);
+            ctx.lineTo(40, 8);
+            ctx.lineTo(80, 30);
+            ctx.lineTo(76, 36);
+            ctx.lineTo(4, 36);
+            ctx.closePath();
+            ctx.fill();
+
+            // Glowing Paper Lantern
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(40, 52, 9, 0, Math.PI * 2);
+            ctx.fill();
+            // Lantern ribs
+            ctx.strokeStyle = '#b45309';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Warm lantern glow aura
+            const grad = ctx.createRadialGradient(40, 52, 2, 40, 52, 32);
+            grad.addColorStop(0, 'rgba(251, 191, 36, 0.45)');
+            grad.addColorStop(1, 'rgba(251, 191, 36, 0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(40, 52, 32, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Signboard in pavilion
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(20, 75, 40, 24);
+            ctx.strokeStyle = '#38bdf8';
+            ctx.strokeRect(20, 75, 40, 24);
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = 'bold 7px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('STATION', 40, 86);
+            ctx.fillText('ACCESS', 40, 94);
+
+            scene.textures.addCanvas('station_pavilion', canvas);
+        }
+
+        // Street Lamp (32x90) with warm light cone
+        {
+            const { canvas, ctx } = this.createCanvas(32, 90);
+            // Pole
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(14, 18, 4, 72);
+            // Base
+            ctx.fillRect(11, 86, 10, 4);
+            // Curved arm
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(12, 12, 12, 4);
+            // Lamp casing
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(18, 14, 10, 6);
+            // Glowing bulb
+            ctx.fillStyle = '#fde047';
+            ctx.fillRect(20, 20, 6, 4);
+
+            scene.textures.addCanvas('street_lamp', canvas);
+        }
+
+        // Scenic Flowering Cherry / Lo-fi Tree (64x90)
+        {
+            const { canvas, ctx } = this.createCanvas(64, 90);
+            // Trunk
+            ctx.fillStyle = '#1c1917';
+            ctx.beginPath();
+            ctx.moveTo(28, 90);
+            ctx.lineTo(34, 90);
+            ctx.lineTo(36, 50);
+            ctx.lineTo(44, 40);
+            ctx.lineTo(32, 44);
+            ctx.lineTo(24, 38);
+            ctx.lineTo(28, 50);
+            ctx.closePath();
+            ctx.fill();
+
+            // Lush Foliage Clouds (Soft Lavender & Pink)
+            const drawPuff = (cx, cy, r, color) => {
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.fill();
+            };
+
+            drawPuff(32, 32, 22, '#4a044e');
+            drawPuff(22, 26, 16, '#701a75');
+            drawPuff(42, 26, 17, '#86198f');
+            drawPuff(32, 18, 18, '#a21caf');
+            drawPuff(26, 14, 12, '#c026d3');
+            drawPuff(38, 14, 13, '#e879f9');
+            drawPuff(32, 10, 10, '#f5d0fe');
+
+            scene.textures.addCanvas('lofi_tree', canvas);
+        }
+
+        // Road Platform Tile (64x40)
+        {
+            const { canvas, ctx } = this.createCanvas(64, 40);
+            // Dark smooth asphalt road
+            ctx.fillStyle = '#0c101d';
+            ctx.fillRect(0, 0, 64, 40);
+            // Road top curb with soft grass
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, 0, 64, 4);
+            ctx.fillStyle = '#065f46'; // Emerald grass rim
+            ctx.fillRect(0, 0, 64, 2);
+
+            // Dashed painted road center line
+            ctx.fillStyle = 'rgba(254, 240, 138, 0.4)';
+            ctx.fillRect(16, 20, 32, 3);
+
+            scene.textures.addCanvas('road_tile', canvas);
+        }
+
+        // Drifting Petal Particle (8x8)
         {
             const { canvas, ctx } = this.createCanvas(8, 8);
-            ctx.fillStyle = '#00f0ff';
-            ctx.fillRect(2, 0, 4, 8);
-            ctx.fillRect(0, 2, 8, 4);
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(2, 2, 4, 4);
-            scene.textures.addCanvas('particle_spark', canvas);
-        }
-
-        // Binary '0'
-        {
-            const { canvas, ctx } = this.createCanvas(8, 10);
-            ctx.strokeStyle = '#22c55e';
-            ctx.lineWidth = 1.5;
-            ctx.strokeRect(1, 1, 6, 8);
-            scene.textures.addCanvas('particle_bin_0', canvas);
-        }
-
-        // Binary '1'
-        {
-            const { canvas, ctx } = this.createCanvas(8, 10);
-            ctx.fillStyle = '#22c55e';
-            ctx.fillRect(3, 1, 2, 8);
-            ctx.fillRect(1, 2, 3, 2);
-            ctx.fillRect(1, 7, 6, 2);
-            scene.textures.addCanvas('particle_bin_1', canvas);
-        }
-
-        // Dash cloud
-        {
-            const { canvas, ctx } = this.createCanvas(16, 16);
-            ctx.fillStyle = 'rgba(0, 240, 255, 0.5)';
+            ctx.fillStyle = '#f472b6';
             ctx.beginPath();
-            ctx.arc(8, 8, 7, 0, Math.PI * 2);
+            ctx.ellipse(4, 4, 3.5, 2, 0.4, 0, Math.PI * 2);
             ctx.fill();
-            scene.textures.addCanvas('particle_dash', canvas);
+            scene.textures.addCanvas('particle_petal', canvas);
         }
     }
 
     // ==========================================
-    // 7. PARALLAX BACKGROUND TEXTURES
+    // 3. PARALLAX BACKGROUNDS
     // ==========================================
     static generateBackgrounds(scene) {
-        // Background Layer 1: Deep Space & Cyber Horizon Grid (512x384)
+        // Sky Layer: Lo-Fi Twilight Gradient with Crescent Moon (600x384)
         {
-            const { canvas, ctx } = this.createCanvas(512, 384);
-            // Gradient sky
-            const skyGrad = ctx.createLinearGradient(0, 0, 0, 384);
-            skyGrad.addColorStop(0, '#030712');   // Deep space
-            skyGrad.addColorStop(0.55, '#1e1b4b'); // Cyber dusk
-            skyGrad.addColorStop(0.75, '#4c1d95'); // Magenta horizon
-            skyGrad.addColorStop(0.9, '#831843');  // Sunset glow
-            skyGrad.addColorStop(1, '#050510');
-            ctx.fillStyle = skyGrad;
-            ctx.fillRect(0, 0, 512, 384);
+            const { canvas, ctx } = this.createCanvas(600, 384);
+            const grad = ctx.createLinearGradient(0, 0, 0, 384);
+            grad.addColorStop(0, '#09081e');   // Deep indigo night
+            grad.addColorStop(0.4, '#1e143b'); // Warm twilight violet
+            grad.addColorStop(0.7, '#44184c'); // Magenta dusk
+            grad.addColorStop(0.9, '#7a2846'); // Sunset peach
+            grad.addColorStop(1, '#1e1026');   // Horizon base
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 600, 384);
 
-            // Cyber Sun on Horizon
-            const sunGrad = ctx.createLinearGradient(0, 160, 0, 270);
-            sunGrad.addColorStop(0, '#fde047');
-            sunGrad.addColorStop(0.5, '#ec4899');
-            sunGrad.addColorStop(1, '#7e22ce');
-            ctx.fillStyle = sunGrad;
+            // Crescent Moon
+            ctx.fillStyle = '#fef08a';
             ctx.beginPath();
-            ctx.arc(256, 220, 60, Math.PI, 0, false);
+            ctx.arc(460, 90, 24, 0, Math.PI * 2);
+            ctx.fill();
+            // Shadow circle cutting out crescent
+            ctx.fillStyle = '#110d29';
+            ctx.beginPath();
+            ctx.arc(468, 86, 22, 0, Math.PI * 2);
             ctx.fill();
 
-            // Horizontal sun slice cuts
-            ctx.fillStyle = '#4c1d95';
-            for (let y = 190; y < 225; y += 6) {
-                const h = 2 + (y - 190) * 0.1;
-                ctx.fillRect(180, y, 150, h);
-            }
-
-            // Distant wireframe neon mountain ranges
-            ctx.strokeStyle = '#a855f7';
-            ctx.lineWidth = 1.5;
+            // Moon halo
+            const moonGrad = ctx.createRadialGradient(460, 90, 10, 460, 90, 70);
+            moonGrad.addColorStop(0, 'rgba(254, 240, 138, 0.15)');
+            moonGrad.addColorStop(1, 'rgba(254, 240, 138, 0)');
+            ctx.fillStyle = moonGrad;
             ctx.beginPath();
-            ctx.moveTo(0, 240);
-            ctx.lineTo(80, 190);
-            ctx.lineTo(150, 230);
-            ctx.lineTo(240, 175);
-            ctx.lineTo(330, 235);
-            ctx.lineTo(410, 185);
-            ctx.lineTo(512, 240);
-            ctx.stroke();
+            ctx.arc(460, 90, 70, 0, Math.PI * 2);
+            ctx.fill();
 
-            // Horizon Grid (Synthwave perspective grid)
-            ctx.strokeStyle = 'rgba(0, 240, 255, 0.45)';
-            ctx.lineWidth = 1;
-            // Horizontal perspective lines
-            for (let y = 240; y < 384; y += (y - 230) * 0.28 + 3) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(512, y);
-                ctx.stroke();
-            }
-            // Vanishing perspective rays from center
-            for (let x = -200; x <= 712; x += 40) {
-                ctx.beginPath();
-                ctx.moveTo(256, 240);
-                ctx.lineTo(x, 384);
-                ctx.stroke();
-            }
-
-            // Stars
+            // Stars / Constellations
             ctx.fillStyle = '#ffffff';
-            for (let s = 0; s < 50; s++) {
-                const sx = (s * 97) % 512;
-                const sy = (s * 67) % 180;
-                ctx.fillRect(sx, sy, 1.5, 1.5);
+            for (let i = 0; i < 45; i++) {
+                const sx = (i * 83) % 600;
+                const sy = (i * 47) % 200;
+                const r = (i % 3 === 0) ? 1.5 : 1;
+                ctx.fillRect(sx, sy, r, r);
             }
 
-            scene.textures.addCanvas('bg_stars_grid', canvas);
+            scene.textures.addCanvas('bg_lofi_sky', canvas);
         }
 
-        // Background Layer 2: Midground Cyber City Skyline & Circuit Towers (512x384)
+        // Hills Layer: Distant Mountains & Pine Forest Silhouettes (600x240)
         {
-            const { canvas, ctx } = this.createCanvas(512, 384);
-            // Transparent background
-            ctx.clearRect(0, 0, 512, 384);
+            const { canvas, ctx } = this.createCanvas(600, 240);
+            ctx.clearRect(0, 0, 600, 240);
 
-            // Array of stylized cyber skyscrapers & data servers
-            const towers = [
-                { x: 0, w: 45, h: 180 },
-                { x: 50, w: 35, h: 220 },
-                { x: 90, w: 55, h: 160 },
-                { x: 150, w: 40, h: 240 },
-                { x: 195, w: 60, h: 200 },
-                { x: 260, w: 40, h: 170 },
-                { x: 305, w: 50, h: 250 },
-                { x: 360, w: 35, h: 190 },
-                { x: 400, w: 65, h: 230 },
-                { x: 470, w: 45, h: 180 },
-            ];
+            // Distant rolling mountain silhouette
+            ctx.fillStyle = '#170f2a';
+            ctx.beginPath();
+            ctx.moveTo(0, 240);
+            ctx.lineTo(0, 120);
+            ctx.bezierCurveTo(120, 70, 220, 140, 320, 90);
+            ctx.bezierCurveTo(420, 40, 520, 110, 600, 70);
+            ctx.lineTo(600, 240);
+            ctx.closePath();
+            ctx.fill();
 
-            towers.forEach(t => {
-                const y = 384 - t.h;
-                // Building silhouette
-                ctx.fillStyle = '#090d16';
-                ctx.fillRect(t.x, y, t.w, t.h);
+            // Midground hills with pine tree silhouettes
+            ctx.fillStyle = '#0d091a';
+            ctx.beginPath();
+            ctx.moveTo(0, 240);
+            ctx.lineTo(0, 150);
+            ctx.bezierCurveTo(140, 120, 280, 180, 420, 130);
+            ctx.bezierCurveTo(500, 110, 560, 140, 600, 130);
+            ctx.lineTo(600, 240);
+            ctx.closePath();
+            ctx.fill();
 
-                // Neon roof antenna
-                ctx.fillStyle = '#06b6d4';
-                ctx.fillRect(t.x + Math.floor(t.w / 2), y - 16, 2, 16);
-                ctx.fillStyle = '#f43f5e';
-                ctx.fillRect(t.x + Math.floor(t.w / 2) - 1, y - 18, 4, 3);
+            // Stylized little pine trees along ridge
+            ctx.fillStyle = '#090614';
+            for (let px = 10; px < 590; px += 28) {
+                const py = 145 + Math.sin(px * 0.02) * 15;
+                ctx.beginPath();
+                ctx.moveTo(px, py);
+                ctx.lineTo(px + 4, py - 14);
+                ctx.lineTo(px + 8, py);
+                ctx.closePath();
+                ctx.fill();
+            }
 
-                // Server rack / cyber window columns
-                ctx.fillStyle = 'rgba(0, 240, 255, 0.25)';
-                for (let wy = y + 15; wy < 380; wy += 14) {
-                    for (let wx = t.x + 6; wx < t.x + t.w - 6; wx += 8) {
-                        if (Math.random() > 0.3) {
-                            ctx.fillRect(wx, wy, 4, 6);
-                        }
-                    }
-                }
-
-                // Vertical glowing edge
-                ctx.fillStyle = '#1e1b4b';
-                ctx.fillRect(t.x, y, 2, t.h);
-            });
-
-            scene.textures.addCanvas('bg_skyscrapers', canvas);
+            scene.textures.addCanvas('bg_lofi_hills', canvas);
         }
     }
 
     // ==========================================
-    // 8. REGISTER PHASER ANIMATIONS
+    // 4. ANIMATIONS
     // ==========================================
     static registerAnimations(scene) {
-        // Player Idle
         scene.anims.create({
-            key: 'p_idle',
+            key: 'anim_cyclist_pedal',
             frames: [
-                { key: 'player_idle_0' },
-                { key: 'player_idle_1' },
-                { key: 'player_idle_2' },
-                { key: 'player_idle_3' }
+                { key: 'cyclist_pedal_0' },
+                { key: 'cyclist_pedal_1' },
+                { key: 'cyclist_pedal_2' },
+                { key: 'cyclist_pedal_3' },
+                { key: 'cyclist_pedal_4' },
+                { key: 'cyclist_pedal_5' },
+                { key: 'cyclist_pedal_6' },
+                { key: 'cyclist_pedal_7' }
             ],
-            frameRate: 6,
-            repeat: -1
-        });
-
-        // Player Run
-        scene.anims.create({
-            key: 'p_run',
-            frames: [
-                { key: 'player_run_0' },
-                { key: 'player_run_1' },
-                { key: 'player_run_2' },
-                { key: 'player_run_3' },
-                { key: 'player_run_4' },
-                { key: 'player_run_5' }
-            ],
-            frameRate: 12,
-            repeat: -1
-        });
-
-        // Rotating Kernel Coins
-        scene.anims.create({
-            key: 'anim_coin_kernel',
-            frames: [
-                { key: 'coin_kernel_0' },
-                { key: 'coin_kernel_1' },
-                { key: 'coin_kernel_2' },
-                { key: 'coin_kernel_3' }
-            ],
-            frameRate: 7,
-            repeat: -1
-        });
-
-        // Rotating Crypto Coins
-        scene.anims.create({
-            key: 'anim_coin_crypto',
-            frames: [
-                { key: 'coin_crypto_0' },
-                { key: 'coin_crypto_1' },
-                { key: 'coin_crypto_2' },
-                { key: 'coin_crypto_3' }
-            ],
-            frameRate: 7,
-            repeat: -1
-        });
-
-        // Bug Glitch Enemy
-        scene.anims.create({
-            key: 'anim_bug',
-            frames: [
-                { key: 'enemy_bug_0' },
-                { key: 'enemy_bug_1' }
-            ],
-            frameRate: 6,
-            repeat: -1
-        });
-
-        // Security Drone
-        scene.anims.create({
-            key: 'anim_drone',
-            frames: [
-                { key: 'enemy_drone_0' },
-                { key: 'enemy_drone_1' }
-            ],
-            frameRate: 4,
+            frameRate: 10,
             repeat: -1
         });
     }

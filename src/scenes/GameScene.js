@@ -1,5 +1,5 @@
 /**
- * Main Gameplay Scene for Pranesh's World Runner
+ * Main Lo-Fi Cycling Scene through Pranesh's Career
  */
 
 class GameScene extends Phaser.Scene {
@@ -8,137 +8,39 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
-        this.worldWidth = 10200;
-        this.worldHeight = 600;
+        this.worldWidth = 12000;
+        this.worldHeight = 540;
 
-        // Reset game stats
-        this.score = 0;
-        this.coinsCollected = 0;
-        this.secretsCollected = 0;
-        this.totalSecrets = 5;
-        this.startTime = Date.now();
-        this.elapsedTimeStr = "00:00.0";
-        this.currentCheckpoint = { x: 120, y: 400 };
-        this.activeTerminal = null;
-        this.dialogOpen = false;
+        // State
+        this.activeStation = null;
+        this.modalOpen = false;
 
-        // Sound engine reference
-        this.audio = window.soundEngine;
-
-        // 1. Parallax Backgrounds
-        this.bgSky = this.add.tileSprite(0, 0, this.cameras.main.width, this.cameras.main.height, 'bg_stars_grid')
+        // 1. Parallax Scenic Backgrounds
+        this.bgSky = this.add.tileSprite(0, 0, this.cameras.main.width, this.cameras.main.height, 'bg_lofi_sky')
             .setOrigin(0, 0)
             .setScrollFactor(0);
 
-        this.bgCity = this.add.tileSprite(0, 80, this.cameras.main.width, 384, 'bg_skyscrapers')
+        this.bgHills = this.add.tileSprite(0, 180, this.cameras.main.width, 240, 'bg_lofi_hills')
             .setOrigin(0, 0)
             .setScrollFactor(0)
-            .setAlpha(0.65);
+            .setAlpha(0.75);
 
-        // 2. Physics Groups
+        // 2. Physics Platforms & Stations
         this.platforms = this.physics.add.staticGroup();
-        this.hazards = this.physics.add.staticGroup();
-        this.bouncePads = this.physics.add.group();
-        this.collectibles = this.physics.add.group();
-        this.secrets = this.physics.add.group();
-        this.enemies = this.physics.add.group();
-        this.movingPlatforms = [];
-        this.terminals = [];
-        this.checkpoints = [];
+        this.stations = [];
 
-        // 3. World Construction
         WorldBuilder.build(this);
 
-        // 4. Create Player
-        this.player = new Player(this, this.currentCheckpoint.x, this.currentCheckpoint.y);
+        // 3. Create Cyclist (Pranesh)
+        this.cyclist = new Cyclist(this, 200, 435);
+        this.physics.add.collider(this.cyclist, this.platforms);
 
-        // 5. Setup Collisions
-        this.physics.add.collider(this.player, this.platforms);
-        this.physics.add.collider(this.enemies, this.platforms);
-
-        // Moving platforms collision
-        this.movingPlatforms.forEach(mp => {
-            this.physics.add.collider(this.player, mp);
-        });
-
-        // Player with Bounce Pads
-        this.physics.add.overlap(this.player, this.bouncePads, (player, pad) => {
-            if (player.body.velocity.y > -50) {
-                player.body.setVelocityY(-720);
-                this.audio.playBounce();
-                this.spawnJumpParticles(pad.x, pad.y - 8);
-
-                // Spring squash and stretch
-                this.tweens.add({
-                    targets: pad,
-                    scaleY: 0.5,
-                    duration: 80,
-                    yoyo: true
-                });
-            }
-        });
-
-        // Player with Collectibles
-        this.physics.add.overlap(this.player, this.collectibles, (player, item) => {
-            if (item.isBattery) {
-                player.dashEnergy = 100;
-                this.score += 200;
-                this.audio.playCollect('powerup');
-                this.showFloatingText(item.x, item.y - 10, "+OVERCLOCK!", "#10b981");
-            } else {
-                this.coinsCollected++;
-                this.score += 100;
-                this.audio.playCollect(item.coinType);
-                this.showFloatingText(item.x, item.y - 10, "+100", "#38bdf8");
-            }
-            this.spawnExplosionParticles(item.x, item.y, 0x00f0ff, 8);
-            item.destroy();
-        });
-
-        // Player with Secrets
-        this.physics.add.overlap(this.player, this.secrets, (player, secret) => {
-            this.secretsCollected++;
-            this.score += 500;
-            this.audio.playSecret();
-            this.spawnExplosionParticles(secret.x, secret.y, 0xf43f5e, 20);
-            this.showFloatingText(secret.x, secret.y - 20, "★ SECRET DOSSIER FOUND! ★", "#ec4899");
-            secret.destroy();
-        });
-
-        // Player with Hazards
-        this.physics.add.overlap(this.player, this.hazards, (player, hazard) => {
-            player.takeDamage(1);
-        });
-
-        // Player with Enemies
-        this.physics.add.overlap(this.player, this.enemies, (player, enemy) => {
-            // Stomp from above or dashing through
-            if (player.isDashing || (player.body.velocity.y > 0 && player.y < enemy.y - 8)) {
-                enemy.defeat();
-                this.score += 250;
-                this.showFloatingText(enemy.x, enemy.y - 10, "+250 GLITCH CLEARED!", "#ef4444");
-                if (!player.isDashing) {
-                    player.body.setVelocityY(-360);
-                }
-            } else {
-                player.takeDamage(1);
-            }
-        });
-
-        // Player with Finish Portal
-        if (this.finishPortal) {
-            this.physics.add.overlap(this.player, this.finishPortal, () => {
-                this.triggerVictory();
-            });
-        }
-
-        // 6. Camera Setup
+        // 4. Camera Follow
         this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
-        this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight + 100);
-        this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
-        this.cameras.main.setDeadzone(100, 60);
+        this.cameras.main.startFollow(this.cyclist, true, 0.06, 0.06);
+        this.cameras.main.setDeadzone(80, 40);
 
-        // 7. Input Keys
+        // 5. Input Controls
         this.cursors = this.input.keyboard.createCursorKeys();
         this.keys = this.input.keyboard.addKeys({
             W: Phaser.Input.Keyboard.KeyCodes.W,
@@ -146,355 +48,323 @@ class GameScene extends Phaser.Scene {
             S: Phaser.Input.Keyboard.KeyCodes.S,
             D: Phaser.Input.Keyboard.KeyCodes.D,
             SPACE: Phaser.Input.Keyboard.KeyCodes.SPACE,
-            SHIFT: Phaser.Input.Keyboard.KeyCodes.SHIFT,
-            J: Phaser.Input.Keyboard.KeyCodes.J,
-            X: Phaser.Input.Keyboard.KeyCodes.X,
+            ENTER: Phaser.Input.Keyboard.KeyCodes.ENTER,
             E: Phaser.Input.Keyboard.KeyCodes.E,
-            R: Phaser.Input.Keyboard.KeyCodes.R,
+            C: Phaser.Input.Keyboard.KeyCodes.C,
             M: Phaser.Input.Keyboard.KeyCodes.M,
             ESC: Phaser.Input.Keyboard.KeyCodes.ESC
         });
 
-        // Terminal interaction key
-        this.input.keyboard.on('keydown-E', () => this.handleInteract());
-        this.input.keyboard.on('keydown-R', () => this.respawnPlayer());
-        this.input.keyboard.on('keydown-M', () => {
-            const muted = this.audio.toggleMute();
-            this.showFloatingText(this.player.x, this.player.y - 40, muted ? "AUDIO MUTED" : "AUDIO ON", "#f59e0b");
+        // Toggle Auto-Cruise key
+        this.input.keyboard.on('keydown-C', () => this.toggleCruise());
+        this.input.keyboard.on('keydown-M', () => window.soundEngine.toggleMute());
+        this.input.keyboard.on('keydown-ESC', () => this.closeMilestoneModal());
+        this.input.keyboard.on('keydown-SPACE', () => {
+            if (this.modalOpen) {
+                this.closeMilestoneModal();
+            } else if (this.activeStation) {
+                this.openMilestoneModal(this.activeStation.milestone);
+            }
         });
-        this.input.keyboard.on('keydown-ESC', () => this.closeDialog());
+        this.input.keyboard.on('keydown-E', () => {
+            if (this.activeStation) this.openMilestoneModal(this.activeStation.milestone);
+        });
 
-        // 8. In-Game Cyber HUD
+        // 6. HUD and UI Overlay
         this.createHUD();
+        this.createReaderModal();
+
+        // Dispatch initial station list to HTML navigation
+        if (window.renderStationBar) {
+            window.renderStationBar(window.RESUME_DATA.milestones);
+        }
     }
 
     createHUD() {
-        this.hudContainer = this.add.container(0, 0).setScrollFactor(0);
+        this.hud = this.add.container(0, 0).setScrollFactor(0);
 
-        // Top HUD bar background
-        const topBar = this.add.rectangle(this.cameras.main.width / 2, 22, this.cameras.main.width - 20, 36, 0x050b14, 0.85);
+        // Top Status Bar (Translucent glass)
+        const topBar = this.add.rectangle(this.cameras.main.width / 2, 22, this.cameras.main.width - 24, 34, 0x09081e, 0.85);
         topBar.setStrokeStyle(1, 0x1e293b);
-        this.hudContainer.add(topBar);
+        this.hud.add(topBar);
 
-        // Health Display
-        this.healthText = this.add.text(24, 14, "HEALTH: ❤️ ❤️ ❤️", {
+        // Auto Cruise Indicator Button
+        this.cruiseBtn = this.add.container(80, 22);
+        const cBg = this.add.rectangle(0, 0, 130, 22, 0x0f172a, 0.9).setInteractive({ useHandCursor: true });
+        cBg.setStrokeStyle(1, 0x0284c7);
+        this.cruiseText = this.add.text(0, 0, "🚴 AUTO-CRUISE: ON", {
             fontFamily: 'monospace',
-            fontSize: '13px',
-            color: '#ef4444',
-            fontStyle: 'bold'
-        });
-        this.hudContainer.add(this.healthText);
-
-        // Dash Meter Bar
-        this.dashLabel = this.add.text(190, 14, "DASH:", {
-            fontFamily: 'monospace',
-            fontSize: '12px',
-            color: '#00f0ff'
-        });
-        this.dashBg = this.add.rectangle(270, 22, 60, 10, 0x1e293b);
-        this.dashFill = this.add.rectangle(270, 22, 60, 10, 0x00f0ff);
-        this.hudContainer.add([this.dashLabel, this.dashBg, this.dashFill]);
-
-        // Zone Indicator Badge
-        this.zoneBadge = this.add.text(this.cameras.main.width / 2, 22, "ZONE 1: KERNEL DEPTHS", {
-            fontFamily: 'monospace',
-            fontSize: '12px',
-            color: '#38bdf8',
-            backgroundColor: '#0c4a6e',
-            padding: { x: 8, y: 3 }
+            fontSize: '10px',
+            fontStyle: 'bold',
+            color: '#38bdf8'
         }).setOrigin(0.5);
-        this.hudContainer.add(this.zoneBadge);
+        this.cruiseBtn.add([cBg, this.cruiseText]);
+        cBg.on('pointerdown', () => this.toggleCruise());
+        this.hud.add(this.cruiseBtn);
 
-        // Coins and Secrets Counter
-        this.statsText = this.add.text(this.cameras.main.width - 260, 14, "🪙 0  |  📁 0/5", {
+        // Station Header Indicator
+        this.stationIndicator = this.add.text(this.cameras.main.width / 2, 22, "CYCLING THROUGH: OVERVIEW & CONTACT", {
+            fontFamily: '"Chakra Petch", sans-serif',
+            fontSize: '12px',
+            fontStyle: 'bold',
+            color: '#f8fafc'
+        }).setOrigin(0.5);
+        this.hud.add(this.stationIndicator);
+
+        // Audio & Guide label
+        const tipText = this.add.text(this.cameras.main.width - 30, 22, "🎵 LO-FI 74 BPM  •  [C] CRUISE  •  [SPACE] READ", {
             fontFamily: 'monospace',
-            fontSize: '13px',
-            color: '#fbbf24',
-            fontStyle: 'bold'
+            fontSize: '10px',
+            color: '#94a3b8'
+        }).setOrigin(1, 0.5);
+        this.hud.add(tipText);
+
+        // Bottom Scenic Card Preview (shows up when passing milestone)
+        this.previewCard = this.add.container(this.cameras.main.width / 2, this.cameras.main.height - 48);
+        this.previewCard.setVisible(false);
+
+        const cardBg = this.add.rectangle(0, 0, 700, 48, 0x09081e, 0.92);
+        cardBg.setStrokeStyle(1.5, 0x38bdf8);
+        cardBg.setInteractive({ useHandCursor: true });
+        cardBg.on('pointerdown', () => {
+            if (this.activeStation) this.openMilestoneModal(this.activeStation.milestone);
         });
-        this.hudContainer.add(this.statsText);
 
-        // Speedrun Timer
-        this.timerText = this.add.text(this.cameras.main.width - 110, 14, "⏱ 00:00.0", {
-            fontFamily: 'monospace',
+        this.previewTitle = this.add.text(-330, -10, "", {
+            fontFamily: '"Chakra Petch", sans-serif',
             fontSize: '13px',
-            color: '#a855f7',
-            fontStyle: 'bold'
-        });
-        this.hudContainer.add(this.timerText);
-
-        // Bottom World Progress Bar
-        const botBarBg = this.add.rectangle(this.cameras.main.width / 2, this.cameras.main.height - 12, this.cameras.main.width - 40, 6, 0x1e293b, 0.9);
-        this.progressBar = this.add.rectangle(20, this.cameras.main.height - 12, 0, 6, 0x00f0ff);
-        this.progressBar.setOrigin(0, 0.5);
-        this.hudContainer.add([botBarBg, this.progressBar]);
-
-        // Dialogue Modal Container
-        this.createDialogModal();
-    }
-
-    createDialogModal() {
-        this.dialogContainer = this.add.container(this.cameras.main.width / 2, this.cameras.main.height / 2).setScrollFactor(0);
-        this.dialogContainer.setVisible(false);
-
-        const overlay = this.add.rectangle(0, 0, this.cameras.main.width, this.cameras.main.height, 0x000000, 0.6);
-        overlay.setInteractive();
-
-        const box = this.add.rectangle(0, 0, 560, 240, 0x090d16, 0.96);
-        box.setStrokeStyle(2, 0x00f0ff);
-
-        this.dialogTitle = this.add.text(-250, -95, "TERMINAL ACCESS", {
-            fontFamily: 'monospace',
-            fontSize: '15px',
             fontStyle: 'bold',
             color: '#00f0ff'
         });
 
-        this.dialogTag = this.add.text(250, -95, "[SECURE]", {
+        this.previewSubtitle = this.add.text(-330, 8, "", {
+            fontFamily: 'monospace',
+            fontSize: '11px',
+            color: '#cbd5e1'
+        });
+
+        const openBtn = this.add.rectangle(290, 0, 95, 26, 0x0284c7);
+        openBtn.setStrokeStyle(1, 0x38bdf8);
+        const openTxt = this.add.text(290, 0, "READ STORY ➔", {
+            fontFamily: 'monospace',
+            fontSize: '10px',
+            fontStyle: 'bold',
+            color: '#ffffff'
+        }).setOrigin(0.5);
+
+        this.previewCard.add([cardBg, this.previewTitle, this.previewSubtitle, openBtn, openTxt]);
+        this.hud.add(this.previewCard);
+    }
+
+    createReaderModal() {
+        this.modalContainer = this.add.container(this.cameras.main.width / 2, this.cameras.main.height / 2).setScrollFactor(0);
+        this.modalContainer.setVisible(false);
+
+        const overlay = this.add.rectangle(0, 0, this.cameras.main.width, this.cameras.main.height, 0x000000, 0.7);
+        overlay.setInteractive();
+        overlay.on('pointerdown', () => this.closeMilestoneModal());
+
+        const box = this.add.rectangle(0, 0, 780, 440, 0x09081e, 0.98);
+        box.setStrokeStyle(2, 0x0284c7);
+        box.setInteractive(); // Prevent click through
+
+        this.mBadge = this.add.text(-360, -195, "", {
+            fontFamily: 'monospace',
+            fontSize: '11px',
+            color: '#38bdf8',
+            backgroundColor: '#0c4a6e',
+            padding: { x: 6, y: 2 }
+        });
+
+        this.mTitle = this.add.text(-360, -165, "", {
+            fontFamily: '"Chakra Petch", sans-serif',
+            fontSize: '20px',
+            fontStyle: 'bold',
+            color: '#ffffff'
+        });
+
+        this.mPeriod = this.add.text(-360, -135, "", {
+            fontFamily: 'monospace',
+            fontSize: '12px',
+            color: '#ec4899'
+        });
+
+        this.mQuote = this.add.text(-360, -112, "", {
+            fontFamily: 'monospace',
+            fontSize: '12px',
+            fontStyle: 'italic',
+            color: '#cbd5e1',
+            wordWrap: { width: 720 }
+        });
+
+        // Content Area Text
+        this.mHighlights = this.add.text(-360, -75, "", {
+            fontFamily: 'monospace',
+            fontSize: '11.5px',
+            color: '#e2e8f0',
+            lineSpacing: 7,
+            wordWrap: { width: 720 }
+        });
+
+        // Tags Footer
+        this.mTags = this.add.text(-360, 150, "", {
             fontFamily: 'monospace',
             fontSize: '11px',
             color: '#38bdf8'
-        }).setOrigin(1, 0);
-
-        const divider = this.add.line(0, -75, -250, 0, 250, 0, 0x1e293b);
-
-        this.dialogBody = this.add.text(-250, -60, "", {
-            fontFamily: 'monospace',
-            fontSize: '13px',
-            color: '#e2e8f0',
-            lineSpacing: 6,
-            wordWrap: { width: 500 }
         });
 
-        const closeHint = this.add.text(0, 92, "Press [E] or [ESC] or Click to Close", {
+        // Close Button
+        const closeBtn = this.add.rectangle(340, -195, 26, 26, 0x1e293b).setInteractive({ useHandCursor: true });
+        closeBtn.setStrokeStyle(1, 0x64748b);
+        const closeTxt = this.add.text(340, -195, "✕", {
             fontFamily: 'monospace',
-            fontSize: '11px',
-            color: '#64748b'
+            fontSize: '14px',
+            color: '#ffffff'
         }).setOrigin(0.5);
 
-        overlay.on('pointerdown', () => this.closeDialog());
-        box.setInteractive();
-        box.on('pointerdown', () => this.closeDialog());
+        closeBtn.on('pointerdown', () => this.closeMilestoneModal());
 
-        this.dialogContainer.add([overlay, box, this.dialogTitle, this.dialogTag, divider, this.dialogBody, closeHint]);
+        // Previous & Next Navigation Buttons
+        const prevBtn = this.add.rectangle(-80, 185, 120, 28, 0x1e293b).setInteractive({ useHandCursor: true });
+        prevBtn.setStrokeStyle(1, 0x334155);
+        const prevTxt = this.add.text(-80, 185, "◀ PREVIOUS", {
+            fontFamily: 'monospace',
+            fontSize: '10px',
+            color: '#cbd5e1'
+        }).setOrigin(0.5);
+        prevBtn.on('pointerdown', () => this.navigateMilestone(-1));
+
+        const nextBtn = this.add.rectangle(80, 185, 120, 28, 0x0284c7).setInteractive({ useHandCursor: true });
+        nextBtn.setStrokeStyle(1, 0x38bdf8);
+        const nextTxt = this.add.text(80, 185, "NEXT ➔", {
+            fontFamily: 'monospace',
+            fontSize: '10px',
+            fontStyle: 'bold',
+            color: '#ffffff'
+        }).setOrigin(0.5);
+        nextBtn.on('pointerdown', () => this.navigateMilestone(1));
+
+        this.modalContainer.add([
+            overlay, box,
+            this.mBadge, this.mTitle, this.mPeriod, this.mQuote,
+            this.mHighlights, this.mTags,
+            closeBtn, closeTxt,
+            prevBtn, prevTxt, nextBtn, nextTxt
+        ]);
     }
 
     update(time, delta) {
-        // Parallax background follow
-        this.bgSky.tilePositionX = this.cameras.main.scrollX * 0.15;
-        this.bgCity.tilePositionX = this.cameras.main.scrollX * 0.45;
+        // Parallax background scrolling
+        this.bgSky.tilePositionX = this.cameras.main.scrollX * 0.08;
+        this.bgHills.tilePositionX = this.cameras.main.scrollX * 0.25;
 
-        // Player update if dialog not blocking
-        if (!this.dialogOpen) {
-            this.player.update(time, delta, this.cursors, this.keys);
-        }
-
-        // Enemies update
-        this.enemies.getChildren().forEach(enemy => {
-            if (enemy.update) enemy.update();
-        });
-
-        // Check if player fell into pit
-        if (this.player.y > 580 && !this.player.isDead) {
-            this.player.takeDamage(1);
-            if (!this.player.isDead) {
-                this.respawnPlayer();
-            }
-        }
-
-        // Checkpoints proximity
-        this.checkpoints.forEach(cp => {
-            if (Math.abs(this.player.x - cp.x) < 32 && Math.abs(this.player.y - cp.y) < 60) {
-                if (!cp.isActivated) {
-                    cp.activate();
-                    this.currentCheckpoint = { x: cp.x, y: cp.y };
-                    this.showFloatingText(cp.x, cp.y - 40, "CHECKPOINT SAVED!", "#00f0ff");
-                }
-            }
-        });
-
-        // Terminals proximity check
-        let nearestTerminal = null;
-        let minDist = 70;
-        this.terminals.forEach(t => {
-            const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, t.x, t.y);
-            if (dist < minDist) {
-                nearestTerminal = t;
-            }
-        });
-
-        if (nearestTerminal !== this.activeTerminal) {
-            if (this.activeTerminal) this.activeTerminal.setInRange(false);
-            this.activeTerminal = nearestTerminal;
-            if (this.activeTerminal) this.activeTerminal.setInRange(true);
-        }
-
-        // Update HUD
-        this.updateHUD();
-    }
-
-    updateHUD() {
-        // Health pips
-        const hearts = "❤️ ".repeat(Math.max(0, this.player.health));
-        this.healthText.setText(`HEALTH: ${hearts}`);
-
-        // Dash bar width
-        const ratio = this.player.dashEnergy / 100;
-        this.dashFill.width = 60 * ratio;
-
-        // Zone tracking based on player X position
-        const px = this.player.x;
-        if (px < 2500) {
-            this.zoneBadge.setText("ZONE 1: KERNEL & SILICON DEPTHS");
-            this.zoneBadge.setBackgroundColor('#0c4a6e');
-        } else if (px < 5200) {
-            this.zoneBadge.setText("ZONE 2: BLOCKCHAIN CONSENSUS");
-            this.zoneBadge.setBackgroundColor('#581c87');
-        } else if (px < 7600) {
-            this.zoneBadge.setText("ZONE 3: CLASSIFIED PROPRIETARY VAULT");
-            this.zoneBadge.setBackgroundColor('#881337');
+        // Update cyclist physics & movement
+        if (!this.modalOpen) {
+            this.cyclist.update(delta, this.cursors, this.keys);
         } else {
-            this.zoneBadge.setText("ZONE 4: INNOVATION SUMMIT & UPLINK");
-            this.zoneBadge.setBackgroundColor('#134e4a');
+            this.cyclist.body.setVelocityX(0);
         }
 
-        // Coins & Secrets
-        this.statsText.setText(`🪙 ${this.coinsCollected}  |  📁 ${this.secretsCollected}/${this.totalSecrets}`);
+        // Check proximity to stations
+        let nearest = null;
+        let minDist = 160;
 
-        // Speedrun Timer
-        const elapsed = Date.now() - this.startTime;
-        const mins = Math.floor(elapsed / 60000);
-        const secs = Math.floor((elapsed % 60000) / 1000);
-        const ms = Math.floor((elapsed % 1000) / 100);
-        this.elapsedTimeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${ms}`;
-        this.timerText.setText(`⏱ ${this.elapsedTimeStr}`);
-
-        // Bottom Progress Bar
-        const progress = Math.min(1, Math.max(0, px / (this.worldWidth - 400)));
-        this.progressBar.width = (this.cameras.main.width - 40) * progress;
-    }
-
-    handleInteract() {
-        if (this.dialogOpen) {
-            this.closeDialog();
-            return;
-        }
-
-        if (this.activeTerminal) {
-            this.openDialog(this.activeTerminal.loreData);
-        }
-    }
-
-    openDialog(lore) {
-        this.dialogOpen = true;
-        this.player.body.setVelocity(0, 0);
-        this.audio.playTerminalBeep();
-
-        this.dialogTitle.setText(lore.title);
-        this.dialogTag.setText(`[${lore.tag}]`);
-        this.dialogBody.setText(lore.content);
-        this.dialogContainer.setVisible(true);
-
-        // Sound effects
-        this.audio.playTerminalBeep();
-    }
-
-    closeDialog() {
-        if (this.dialogOpen) {
-            this.dialogOpen = false;
-            this.dialogContainer.setVisible(false);
-            this.audio.playTerminalBeep();
-        }
-    }
-
-    respawnPlayer() {
-        this.player.respawn(this.currentCheckpoint.x, this.currentCheckpoint.y);
-        this.cameras.main.flash(400, 0, 240, 255);
-    }
-
-    triggerVictory() {
-        this.audio.playVictory();
-        this.scene.start('VictoryScene', {
-            score: this.score,
-            coins: this.coinsCollected,
-            secrets: this.secretsCollected,
-            timeStr: this.elapsedTimeStr
+        this.stations.forEach(st => {
+            const dist = Math.abs(this.cyclist.x - st.x);
+            if (dist < minDist) {
+                nearest = st;
+            }
         });
-    }
 
-    // Particle FX helpers
-    spawnJumpParticles(x, y) {
-        for (let i = 0; i < 6; i++) {
-            const p = this.add.sprite(x, y, 'particle_spark');
-            p.setTint(0x00f0ff);
-            this.tweens.add({
-                targets: p,
-                x: x + (Math.random() - 0.5) * 30,
-                y: y + Math.random() * 20,
-                alpha: 0,
-                scale: 0.2,
-                duration: 250,
-                onComplete: () => p.destroy()
-            });
+        if (nearest !== this.activeStation) {
+            if (this.activeStation) this.activeStation.setInRange(false);
+            this.activeStation = nearest;
+            if (this.activeStation) {
+                this.activeStation.setInRange(true);
+                this.showStationPreview(this.activeStation.milestone);
+            } else {
+                this.hideStationPreview();
+            }
         }
     }
 
-    spawnDoubleJumpRing(x, y) {
-        for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-            const p = this.add.sprite(x, y, 'particle_dash');
-            p.setTint(0xd946ef);
-            this.tweens.add({
-                targets: p,
-                x: x + Math.cos(a) * 35,
-                y: y + Math.sin(a) * 20,
-                alpha: 0,
-                scale: 0.1,
-                duration: 300,
-                onComplete: () => p.destroy()
-            });
+    toggleCruise() {
+        const isCruising = this.cyclist.toggleCruise();
+        this.cruiseText.setText(isCruising ? "🚴 AUTO-CRUISE: ON" : "🚴 MANUAL: OFF");
+        this.cruiseText.setColor(isCruising ? "#38bdf8" : "#94a3b8");
+        window.soundEngine.playClick();
+    }
+
+    showStationPreview(milestone) {
+        this.stationIndicator.setText(`STATION: ${milestone.badge} // ${milestone.title}`);
+        this.previewTitle.setText(milestone.title);
+        this.previewSubtitle.setText(`${milestone.subtitle} • ${milestone.quote}`);
+        this.previewCard.setVisible(true);
+
+        if (window.highlightStationPill) {
+            window.highlightStationPill(milestone.id);
         }
     }
 
-    spawnExplosionParticles(x, y, tint = 0x00f0ff, count = 12) {
-        for (let i = 0; i < count; i++) {
-            const p = this.add.sprite(x, y, 'particle_spark');
-            p.setTint(tint);
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 25 + Math.random() * 45;
-            this.tweens.add({
-                targets: p,
-                x: x + Math.cos(angle) * dist,
-                y: y + Math.sin(angle) * dist,
-                alpha: 0,
-                scale: 0.1,
-                duration: 350 + Math.random() * 150,
-                onComplete: () => p.destroy()
-            });
+    hideStationPreview() {
+        this.previewCard.setVisible(false);
+    }
+
+    openMilestoneModal(milestone) {
+        this.currentModalMilestone = milestone;
+        this.modalOpen = true;
+        window.soundEngine.playStationChime();
+
+        this.mBadge.setText(`[${milestone.badge}]`);
+        this.mTitle.setText(milestone.title);
+        this.mPeriod.setText(`${milestone.subtitle}  |  ${milestone.period}`);
+        this.mQuote.setText(`“${milestone.quote}”`);
+
+        // Format highlights with clean bullets
+        const lines = milestone.highlights.map(h => `• ${h}`).join("\n\n");
+        this.mHighlights.setText(lines);
+
+        // Tags
+        const tags = milestone.techTags.map(t => `#${t}`).join("   ");
+        this.mTags.setText(`Tech: ${tags}`);
+
+        this.modalContainer.setVisible(true);
+    }
+
+    closeMilestoneModal() {
+        if (this.modalOpen) {
+            this.modalOpen = false;
+            this.modalContainer.setVisible(false);
+            window.soundEngine.playClick();
         }
     }
 
-    spawnDeathParticles(x, y) {
-        this.spawnExplosionParticles(x, y, 0xef4444, 25);
-        this.spawnExplosionParticles(x, y, 0x00f0ff, 25);
+    navigateMilestone(direction) {
+        if (!this.currentModalMilestone) return;
+        const list = window.RESUME_DATA.milestones;
+        const curIdx = list.findIndex(m => m.id === this.currentModalMilestone.id);
+        let nextIdx = curIdx + direction;
+        if (nextIdx < 0) nextIdx = list.length - 1;
+        if (nextIdx >= list.length) nextIdx = 0;
+
+        const nextMilestone = list[nextIdx];
+        this.openMilestoneModal(nextMilestone);
+
+        // Jump cyclist to that station position smoothly
+        const st = this.stations[nextIdx];
+        if (st) {
+            this.cyclist.x = st.x - 30;
+        }
     }
 
-    showFloatingText(x, y, message, color = '#ffffff') {
-        const txt = this.add.text(x, y, message, {
-            fontFamily: 'monospace',
-            fontSize: '11px',
-            fontStyle: 'bold',
-            color: color,
-            stroke: '#000000',
-            strokeThickness: 3
-        }).setOrigin(0.5);
-
-        this.tweens.add({
-            targets: txt,
-            y: y - 35,
-            alpha: 0,
-            duration: 900,
-            onComplete: () => txt.destroy()
-        });
+    jumpToMilestone(milestoneId) {
+        const list = window.RESUME_DATA.milestones;
+        const idx = list.findIndex(m => m.id === milestoneId);
+        if (idx !== -1 && this.stations[idx]) {
+            const st = this.stations[idx];
+            this.cyclist.x = st.x - 20;
+            this.openMilestoneModal(list[idx]);
+        }
     }
 }
 

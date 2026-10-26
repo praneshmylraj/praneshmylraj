@@ -2,101 +2,84 @@
 
 <div align="center">
 
-[![Play Game](https://img.shields.io/badge/▶%20PLAY%20GAME%20LIVE-ONLINE%20DEMO-00f0ff?style=for-the-badge&logo=googlechrome&logoColor=white)](https://praneshmylraj.github.io/praneshmylraj/)
-[![Game Engine](https://img.shields.io/badge/ENGINE-PHASER%203-ec4899?style=for-the-badge&logo=javascript&logoColor=white)](https://phaser.io)
-[![Stack](https://img.shields.io/badge/THEME-FULL--STACK%20ODYSSEY-a855f7?style=for-the-badge)](#-the-4-world-zones)
+[![Play Game](https://img.shields.io/badge/🚴%20PLAY%20LO--FI%20JOURNEY-ONLINE%20DEMO-38bdf8?style=for-the-badge&logo=googlechrome&logoColor=white)](https://praneshmylraj.github.io/praneshmylraj/)
+[![Experience](https://img.shields.io/badge/AMAZON%20LAB126-SENIOR%20SOFTWARE%20ENGINEER-ec4899?style=for-the-badge&logo=amazon)](https://praneshmylraj.github.io/praneshmylraj/)
+[![Music](https://img.shields.io/badge/VIBE-CALM%20LO--FI%20(74%20BPM)-fbbf24?style=for-the-badge&logo=soundcloud)](https://praneshmylraj.github.io/praneshmylraj/)
 [![Deploy](https://img.shields.io/badge/HOSTED%20ON-GITHUB%20PAGES-22c55e?style=for-the-badge&logo=github)](https://praneshmylraj.github.io/praneshmylraj/)
 
-### 🎮 **[👉 CLICK HERE TO PLAY PRANESH'S WORLD RUNNER IN YOUR BROWSER 👈](https://praneshmylraj.github.io/praneshmylraj/)**
-*(Playable directly in any desktop or mobile browser — no downloads or plugins needed!)*
+### 🌸 **[👉 CLICK HERE TO RELAX & CYCLE THROUGH PRANESH'S CAREER JOURNEY 👈](https://praneshmylraj.github.io/praneshmylraj/)**
+*(Playable directly in any browser on desktop or mobile — no scores, no stress, just calm cycling and warm lo-fi beats)*
 
 </div>
 
 ---
 
-- 👀 **Interests**: Software (everything software from OS kernels to blockchains)
-- 🌱 **Learning**: Proprietary architectures & cutting-edge systems *(sshhh, can't share them here!)*
-- 📫 **Contact**: [inboxpranesh@gmail.com](mailto:inboxpranesh@gmail.com)
+### 👤 About Me
+**Senior Software Engineer @ Amazon Lab126**  
+*Distributed Systems • Platform & DevEx Engineering • OS & Edge Platforms • Agentic AI Architecture • Test Architecture*
+
+- 📍 **Location**: Irvine, California, United States
+- 📞 **Mobile**: (206) 353-9731
+- ✉️ **Email**: [inboxpranesh@gmail.com](mailto:inboxpranesh@gmail.com)
+- 💼 **LinkedIn**: [linkedin.com/in/praneshmylraj](https://www.linkedin.com/in/praneshmylraj)
+- 🗣️ **Languages**: English (Native/Bilingual), Tamil (Native/Bilingual), French (Elementary)
+- 🏆 **Top Skills**: Technology Roadmapping, Project Planning, Peer Mentoring
+- 📜 **Certifications**: Business English Vantage, AMCAT Certified Business Analyst, AMCAT Certified Software Engineer - Product
 
 ---
 
-## 🕹️ About the Game: *Pranesh's World Runner // Odyssey Through the Stack*
+## 🚴 About the Game: *Pranesh's Lo-Fi Cycling Journey*
 
-Take control of Pranesh in an interactive cyberpunk platformer running on **Phaser 3**! Sprint, double-jump, crouch-slide, and cyber-dash through an expansive 10,000-pixel digital world that maps out every layer of the software stack:
+A calm, meditative interactive portfolio built in **Phaser 3**. Instead of stressful arcade mechanics and scores, you calmly cycle along a scenic road beneath a twilight sky with warm street lamps and cherry blossoms, listening to procedural warm Rhodes lo-fi beats with vinyl crackle at 74 BPM.
+
+As you pedal (or let **Auto-Cruise** glide forward), you journey through 7 career milestone pavilions detailing 9+ years of engineering at **Amazon Lab126**:
 
 ```
-       [ 01 // KERNEL & SILICON ] ──▶ [ 02 // BLOCKCHAIN CONSENSUS ]
-                                                     │
-       [ 04 // INNOVATION NEXUS ] ◀── [ 03 // PROPRIETARY VAULT ]
+ [ 01 Overview & Contact ] ──▶ [ 02 Senior SWE: VegaOS & 10K+ TPS ] ──▶ [ 03 SWE II: DevTools & Fleet ]
+                                                                                   │
+ [ 07 Sunset Lookout: Uplink ] ◀── [ 06 Education ] ◀── [ 05 Tech Arsenal ] ◀── [ 04 SWE I: Streaming & ASan ]
 ```
 
-### 🗺️ The 4 World Zones
-1. **Zone 1: Silicon & Kernel Depths** (`x: 0 – 2,500`)
-   - CPU register platforms, silicon plates, memory blocks, and microkernel terminals.
-   - Master running, jumping, and cyber-dashing through glitch bugs.
-2. **Zone 2: Blockchain Consensus Expanse** (`x: 2,500 – 5,200`)
-   - Cryptographic chain blocks, mining crystals, moving ledger platforms, and aerial security drones.
-   - Leap across oscillating transaction blocks and unearth secret dossiers.
-3. **Zone 3: Classified Proprietary Vault** (`x: 5,200 – 7,600`)
-   - Clearance Level: OMEGA. Themed after *"learning alot of things that are proprietary (sshhh can't share them here)"*.
-   - Low ceiling hazard chutes, red laser security barriers, and overclock batteries.
-4. **Zone 4: Innovation Summit & Uplink Nexus** (`x: 7,600 – 10,000`)
-   - Floating glass sky-bridges showcasing projects (**LetsBeFriends**, **Nalam**, **Misty Plugins**).
-   - Reach the **Grand Uplink Portal** and establish direct comms with Pranesh!
+### 🗺️ The 7 Milestone Pavilions
+1. **01 // Profile & Contact Overview**: Identity, contact channels, top skills, languages, and certifications.
+2. **02 // Amazon Lab126: Senior Software Engineer (Oct 2023 – Present)**:
+   - **VegaOS Greenfield OS Stack**: Built & own full on-device validation stack (driver, systemd daemon, framework) for Amazon's new Linux OS running ~100K validation runs/day across thousands of Fire TV and Echo Show devices.
+   - **10K+ TPS High-Throughput Service**: Scaled Fire TV DVR scheduling backend past 10K+ TPS with multi-host OAuth/Protobuf load engine, chaos engineering, and cut cloud spend by ~60%.
+   - **Agentic AI on Amazon Bedrock**: Spearheaded multi-agent orchestration and reusable MCP servers for ~250 engineers, plus ML crash-triage system (foundation models + RAG) achieving 75% accuracy.
+   - **Customer-Signal Analytics Engine**: Aggregation layer over MCP reconciling reviews and telemetry for VP reviews.
+3. **03 // Amazon Lab126: Software Engineer II (Dec 2019 – Oct 2023)**:
+   - **Type-Based OS DevTools Framework**: Unified interface across platform abstractions (Appium, custom Maestro, UIAutomator) with CLI running 15K tests/day (comparable to Android's CTS).
+   - **Distributed Device-Lifecycle Service**: End-to-end REST service managing 100K+ devices across 100+ tenants (DynamoDB, LDAP, CSRF, SSO).
+   - **Edge Native UI Validation**: Direct IDL bindings + OpenCV image-diff on Linux edge lifting QA velocity 40%.
+4. **04 // Amazon: Software Engineer I & Intern (2017 – 2019)**:
+   - **DEX Bytecode & ASan Profiling**: dexlib2 bytecode instrumentation on 10M+ devices, unblocking 15+ launch blockers.
+   - **Web Remote-Control & Streaming**: scrcpy with WebSocket + ADB relay + SSO, serving 200+ daily engineers and cutting remote debugging time by ~70%.
+   - **Appstore UI Automation**: Resilient Page Object Model automation across retail web (100M+ shoppers).
+5. **05 // Technical Arsenal**:
+   - Distributed Systems, High Availability, Chaos Engineering, AWS (ECS, CDK, DynamoDB, Lambda), Docker, Agentic AI, Amazon Bedrock, MCP, Java, Python, TypeScript, C++, Protobuf.
+6. **06 // Education & Foundations**:
+   - Sri Krishna College of Engineering & Technology (B.Tech IT, 2014 – 2018)
+   - St. Jude's Public School & Junior College, Kotagiri (2007 – 2014)
+7. **07 // Sunset Lookout: Let's Connect**: Direct communication uplink, resume details, and meeting channels.
 
 ---
 
-### 🎮 Controls
+### 🕹️ Controls
 
 | Action | Keyboard | Touch / Mobile |
 | :--- | :--- | :--- |
-| **Move Left / Right** | <kbd>A</kbd> / <kbd>D</kbd> or <kbd>←</kbd> / <kbd>→</kbd> | Left / Right D-Pad |
-| **Jump & Double Jump** | <kbd>Space</kbd> or <kbd>W</kbd> or <kbd>↑</kbd> | Jump Button (A) |
-| **Cyber Dash** *(Air or Ground)* | <kbd>Shift</kbd> or <kbd>J</kbd> or <kbd>X</kbd> | Dash Button (B) |
-| **Crouch / Slide** | <kbd>S</kbd> or <kbd>↓</kbd> | Down Button (▼) |
-| **Access Terminal** | <kbd>E</kbd> | Interact Button (E) |
-| **Toggle Audio** | <kbd>M</kbd> | Audio Header Button |
-| **CRT Scanlines** | On-screen button | CRT Toggle Button |
+| **Pedal Faster** | <kbd>→</kbd> / <kbd>D</kbd> | Pedal Button (▶) |
+| **Brake / Coast** | <kbd>←</kbd> / <kbd>A</kbd> | Brake Button (◀) |
+| **Read Milestone Story** | <kbd>Space</kbd> / <kbd>E</kbd> / Click Station | Read Button (📖) |
+| **Toggle Auto-Cruise** | <kbd>C</kbd> | Cruise Button (🚴) |
+| **Toggle Lo-Fi Beats** | <kbd>M</kbd> | Audio Header Button |
+| **Quick Jump to Chapter** | Click any Station Pill below canvas | Tap Station Pill |
 | **Fullscreen** | On-screen button | Fullscreen Button |
-| **Quick Respawn** | <kbd>R</kbd> | — |
 
 ---
 
-### 🌐 Live URL & Deployment
-
-The game is pre-configured to run directly on **GitHub Pages**:
-
-🔗 **Live URL**: **[https://praneshmylraj.github.io/praneshmylraj/](https://praneshmylraj.github.io/praneshmylraj/)**
-
-#### How it deploys:
-1. Push this repository to GitHub:
-   ```bash
-   git add .
-   git commit -m "Add interactive Phaser 3 world runner game"
-   git push origin main
-   ```
-2. Enable GitHub Pages in your repo:
-   - Go to your repository on GitHub: **Settings** ➔ **Pages**
-   - Under **Build and deployment** ➔ **Source**, select either:
-     - **GitHub Actions** (the included `.github/workflows/deploy.yml` will deploy automatically on push!), or
-     - **Deploy from a branch** ➔ Branch: `main` ➔ `/ (root)` ➔ Click **Save**.
-3. Your game is immediately live at `https://praneshmylraj.github.io/praneshmylraj/`!
-
----
-
-### 💻 Running Locally
-
-You can also run the game locally:
-
-```bash
-# Clone the repository
-git clone https://github.com/praneshmylraj/praneshmylraj.git
-cd praneshmylraj
-
-# Run with Python
-python3 serve.py
-```
-Open your browser at **`http://localhost:8080`**.
+### 🚀 Live URL
+👉 **[https://praneshmylraj.github.io/praneshmylraj/](https://praneshmylraj.github.io/praneshmylraj/)**
 
 ---
 

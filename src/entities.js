@@ -1,427 +1,168 @@
 /**
- * Entity classes for Pranesh's World Runner
- * Includes Player, Glitch Bug, Security Drone, Moving Platform, Spring Pad, Terminal, and Checkpoint
+ * Cyclist and Milestone Pavilion Entities
+ * Designed for peaceful, calm cycling through Pranesh's career story.
  */
 
-class Player extends Phaser.Physics.Arcade.Sprite {
+class Cyclist extends Phaser.Physics.Arcade.Sprite {
     constructor(scene, x, y) {
-        super(scene, x, y, 'player_idle_0');
+        super(scene, x, y, 'cyclist_pedal_0');
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
         this.setCollideWorldBounds(false);
-        this.setSize(20, 36);
-        this.setOffset(6, 4);
+        this.setSize(48, 36);
+        this.setOffset(8, 8);
 
-        // Movement constants
-        this.MOVE_SPEED = 240;
-        this.ACCEL = 1400;
-        this.DRAG = 1200;
-        this.JUMP_FORCE = -480;
-        this.DOUBLE_JUMP_FORCE = -430;
-        this.DASH_SPEED = 680;
-        this.DASH_DURATION = 240; // ms
-        this.DASH_COOLDOWN = 800; // ms
+        // Movement configuration
+        this.CRUISE_SPEED = 120;
+        this.MAX_SPEED = 240;
+        this.ACCEL = 400;
+        this.DECEL = 350;
 
-        // State
-        this.canDoubleJump = true;
-        this.isDashing = false;
-        this.canDash = true;
-        this.dashTimer = 0;
-        this.dashCooldownTimer = 0;
-        this.isSliding = false;
-        this.facingRight = true;
-        this.invulnerableTimer = 0;
-        this.isDead = false;
+        // Current speed & cruising state
+        this.speed = this.CRUISE_SPEED;
+        this.isCruising = true; // Auto-cruise on by default for effortless relaxation
+        this.targetSpeed = this.CRUISE_SPEED;
 
-        // Stats
-        this.maxHealth = 3;
-        this.health = 3;
-        this.dashEnergy = 100; // 0 - 100%
-
-        // Audio reference
-        this.audio = window.soundEngine;
-
-        // Particle trail timer
-        this.ghostTimer = 0;
+        this.play('anim_cyclist_pedal');
     }
 
-    update(time, delta, cursors, keys) {
-        if (this.isDead) return;
-
-        const onGround = this.body.blocked.down || this.body.touching.down;
-
-        // Recharge Dash Energy
-        if (this.dashEnergy < 100) {
-            this.dashEnergy = Math.min(100, this.dashEnergy + (delta / 1000) * 80);
-        }
-
-        // Invulnerability flicker
-        if (this.invulnerableTimer > 0) {
-            this.invulnerableTimer -= delta;
-            this.alpha = (Math.floor(time / 60) % 2 === 0) ? 0.3 : 1.0;
-        } else {
-            this.alpha = 1.0;
-        }
-
-        // Handle Active Dash
-        if (this.isDashing) {
-            this.dashTimer -= delta;
-            this.spawnDashGhost(time);
-
-            if (this.dashTimer <= 0) {
-                this.isDashing = false;
-                this.body.setMaxVelocity(this.MOVE_SPEED * 1.5, 1000);
-            }
-            return;
-        }
-
-        // Controls input checks
-        const leftDown = Boolean(cursors?.left?.isDown || keys?.A?.isDown || window.virtualInput?.left);
+    update(delta, cursors, keys) {
+        // Controls
         const rightDown = Boolean(cursors?.right?.isDown || keys?.D?.isDown || window.virtualInput?.right);
-        const jumpPressed = Boolean(
-            (cursors?.up && Phaser.Input.Keyboard.JustDown(cursors.up)) ||
-            (keys?.W && Phaser.Input.Keyboard.JustDown(keys.W)) ||
-            (keys?.SPACE && Phaser.Input.Keyboard.JustDown(keys.SPACE)) ||
-            window.virtualInput?.consumeJump()
-        );
-        const dashPressed = Boolean(
-            (keys?.SHIFT && Phaser.Input.Keyboard.JustDown(keys.SHIFT)) ||
-            (keys?.J && Phaser.Input.Keyboard.JustDown(keys.J)) ||
-            (keys?.X && Phaser.Input.Keyboard.JustDown(keys.X)) ||
-            window.virtualInput?.consumeDash()
-        );
-        const downDown = Boolean(cursors?.down?.isDown || keys?.S?.isDown || window.virtualInput?.down);
+        const leftDown = Boolean(cursors?.left?.isDown || keys?.A?.isDown || window.virtualInput?.left);
 
-        // Reset double jump on ground
-        if (onGround) {
-            this.canDoubleJump = true;
-        }
-
-        // Horizontal movement
-        if (leftDown) {
-            this.body.setAccelerationX(-this.ACCEL);
-            this.facingRight = false;
-            this.setFlipX(true);
-        } else if (rightDown) {
-            this.body.setAccelerationX(this.ACCEL);
-            this.facingRight = true;
-            this.setFlipX(false);
+        if (rightDown) {
+            this.isCruising = false;
+            this.targetSpeed = this.MAX_SPEED;
+        } else if (leftDown) {
+            this.isCruising = false;
+            this.targetSpeed = 0; // Gentle brake
+        } else if (this.isCruising) {
+            this.targetSpeed = this.CRUISE_SPEED;
         } else {
-            this.body.setAccelerationX(0);
-            this.body.setDragX(this.DRAG);
+            // Coast at comfortable pace
+            this.targetSpeed = this.CRUISE_SPEED;
         }
 
-        // Slide / Fast Fall
-        if (downDown && onGround && Math.abs(this.body.velocity.x) > 60) {
-            this.isSliding = true;
-            this.setSize(20, 20);
-            this.setOffset(6, 20);
-            this.setTexture('player_slide');
-        } else {
-            if (this.isSliding) {
-                this.isSliding = false;
-                this.setSize(20, 36);
-                this.setOffset(6, 4);
-            }
+        // Smooth speed interpolation
+        const dt = delta / 1000;
+        if (this.speed < this.targetSpeed) {
+            this.speed = Math.min(this.targetSpeed, this.speed + this.ACCEL * dt);
+        } else if (this.speed > this.targetSpeed) {
+            this.speed = Math.max(this.targetSpeed, this.speed - this.DECEL * dt);
         }
 
-        // Jump Handling
-        if (jumpPressed) {
-            if (onGround) {
-                this.body.setVelocityY(this.JUMP_FORCE);
-                this.audio.playJump();
-                this.scene.spawnJumpParticles(this.x, this.y + 18);
-            } else if (this.canDoubleJump) {
-                this.body.setVelocityY(this.DOUBLE_JUMP_FORCE);
-                this.canDoubleJump = false;
-                this.audio.playDoubleJump();
-                this.scene.spawnDoubleJumpRing(this.x, this.y + 10);
-            }
-        }
-
-        // Dash Trigger
-        if (dashPressed && this.dashEnergy >= 40 && !this.isDashing) {
-            this.startDash();
-        }
-
-        // Animation state determination
-        if (!this.isSliding) {
-            if (!onGround) {
-                if (this.body.velocity.y < -30) {
-                    this.setTexture('player_jump');
-                } else {
-                    this.setTexture('player_fall');
-                }
-            } else {
-                if (Math.abs(this.body.velocity.x) > 25) {
-                    if (this.anims.currentAnim?.key !== 'p_run') {
-                        this.play('p_run');
-                    }
-                } else {
-                    if (this.anims.currentAnim?.key !== 'p_idle') {
-                        this.play('p_idle');
-                    }
-                }
-            }
-        }
-    }
-
-    startDash() {
-        this.isDashing = true;
-        this.dashTimer = this.DASH_DURATION;
-        this.dashEnergy -= 45;
-        this.invulnerableTimer = this.DASH_DURATION + 100;
-
-        const dir = this.facingRight ? 1 : -1;
-        this.body.setMaxVelocity(this.DASH_SPEED, 1000);
-        this.body.setVelocityX(dir * this.DASH_SPEED);
-        this.body.setVelocityY(0);
-
-        this.setTexture('player_dash');
-        this.audio.playDash();
-
-        // Screen shake flair
-        this.scene.cameras.main.shake(120, 0.006);
-    }
-
-    spawnDashGhost(time) {
-        if (time - this.ghostTimer > 45) {
-            this.ghostTimer = time;
-            const ghost = this.scene.add.sprite(this.x, this.y, this.texture.key);
-            ghost.setFlipX(this.flipX);
-            ghost.setTint(0x00f0ff);
-            ghost.alpha = 0.6;
-            this.scene.tweens.add({
-                targets: ghost,
-                alpha: 0,
-                scaleX: 1.1,
-                scaleY: 1.1,
-                duration: 200,
-                onComplete: () => ghost.destroy()
-            });
-        }
-    }
-
-    takeDamage(amount = 1) {
-        if (this.invulnerableTimer > 0 || this.isDashing || this.isDead) return false;
-
-        this.health -= amount;
-        this.invulnerableTimer = 1200; // 1.2s i-frames
-        this.audio.playHurt();
-        this.scene.cameras.main.shake(200, 0.015);
-
-        // Knockback
-        const kbDir = this.facingRight ? -1 : 1;
-        this.body.setVelocity(kbDir * 200, -250);
-
-        if (this.health <= 0) {
-            this.die();
-        }
-        return true;
-    }
-
-    die() {
-        if (this.isDead) return;
-        this.isDead = true;
-        this.body.setVelocity(0, 0);
-        this.body.setAcceleration(0, 0);
-        this.body.allowGravity = false;
-
-        this.scene.spawnDeathParticles(this.x, this.y);
-        this.setVisible(false);
-
-        // Respawn at checkpoint after brief pause
-        this.scene.time.delayedCall(800, () => {
-            this.scene.respawnPlayer();
-        });
-    }
-
-    respawn(x, y) {
-        this.isDead = false;
-        this.health = this.maxHealth;
-        this.dashEnergy = 100;
-        this.invulnerableTimer = 1500;
-        this.setVisible(true);
-        this.body.allowGravity = true;
-        this.body.setVelocity(0, 0);
-        this.setPosition(x, y);
-    }
-}
-
-// ----------------------------------------------------
-// Glitch Bug Enemy (Patrols platform, stomped or dashed)
-// ----------------------------------------------------
-class GlitchBug extends Phaser.Physics.Arcade.Sprite {
-    constructor(scene, x, y, distance = 120) {
-        super(scene, x, y, 'enemy_bug_0');
-        scene.add.existing(this);
-        scene.physics.add.existing(this);
-
-        this.startX = x;
-        this.patrolDistance = distance;
-        this.speed = 50;
-        this.direction = 1;
-
-        this.setSize(18, 16);
-        this.setOffset(3, 4);
-        this.play('anim_bug');
+        // Apply velocity
         this.body.setVelocityX(this.speed);
-    }
 
-    update() {
-        if (!this.active || !this.body) return;
+        // Adjust animation speed based on cycling velocity
+        if (this.speed > 10) {
+            if (!this.anims.isPlaying) this.play('anim_cyclist_pedal');
+            const rate = Math.max(3, (this.speed / this.CRUISE_SPEED) * 10);
+            this.anims.timeScale = rate / 10;
+        } else {
+            if (this.anims.isPlaying) this.stop();
+            this.setTexture('cyclist_pedal_0');
+        }
 
-        if (this.x > this.startX + this.patrolDistance) {
-            this.direction = -1;
-            this.setFlipX(true);
-            this.body.setVelocityX(-this.speed);
-        } else if (this.x < this.startX) {
-            this.direction = 1;
-            this.setFlipX(false);
-            this.body.setVelocityX(this.speed);
+        // Infinite World Looping (Continuous calm cycling like a sphere!)
+        const worldWidth = this.scene.worldWidth || 12000;
+        if (this.x > worldWidth - 400) {
+            this.x = 200;
+            this.scene.cameras.main.scrollX = 0;
+        } else if (this.x < 100) {
+            this.x = 100;
         }
     }
 
-    defeat() {
-        window.soundEngine.playEnemyDefeat();
-        this.scene.spawnExplosionParticles(this.x, this.y, 0xef4444);
-        this.destroy();
+    toggleCruise() {
+        this.isCruising = !this.isCruising;
+        if (this.isCruising) {
+            this.targetSpeed = this.CRUISE_SPEED;
+        }
+        return this.isCruising;
     }
 }
 
 // ----------------------------------------------------
-// Security Drone Enemy (Flying surveillance drone)
+// Milestone Pavilion along the scenic route
 // ----------------------------------------------------
-class SecurityDrone extends Phaser.Physics.Arcade.Sprite {
-    constructor(scene, x, y, rangeY = 80) {
-        super(scene, x, y, 'enemy_drone_0');
+class MilestonePavilion extends Phaser.GameObjects.Container {
+    constructor(scene, x, y, milestoneData) {
+        super(scene, x, y);
         scene.add.existing(this);
-        scene.physics.add.existing(this);
+        this.milestone = milestoneData;
+        this.hasVisited = false;
 
-        this.startY = y;
-        this.rangeY = rangeY;
-        this.body.allowGravity = false;
-        this.setSize(24, 16);
-        this.play('anim_drone');
+        // Pavilion Graphic
+        this.pavilionSprite = scene.add.sprite(0, -60, 'station_pavilion');
+        this.add(this.pavilionSprite);
 
-        scene.tweens.add({
-            targets: this,
-            y: this.startY - rangeY,
-            duration: 1800,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut'
-        });
-    }
+        // Station Signboard Header
+        const badgeBg = scene.add.rectangle(0, -135, 200, 24, 0x090d16, 0.9);
+        badgeBg.setStrokeStyle(1, 0x0284c7);
+        this.add(badgeBg);
 
-    defeat() {
-        window.soundEngine.playEnemyDefeat();
-        this.scene.spawnExplosionParticles(this.x, this.y, 0x06b6d4);
-        this.destroy();
-    }
-}
-
-// ----------------------------------------------------
-// Moving Platform
-// ----------------------------------------------------
-class MovingPlatform extends Phaser.Physics.Arcade.Sprite {
-    constructor(scene, x, y, moveX = 140, moveY = 0, duration = 3000) {
-        super(scene, x, y, 'tile_floating');
-        scene.add.existing(this);
-        scene.physics.add.existing(this, true); // Static body for solid ride
-
-        this.startX = x;
-        this.startY = y;
-        this.moveX = moveX;
-        this.moveY = moveY;
-
-        scene.tweens.add({
-            targets: this,
-            x: x + moveX,
-            y: y + moveY,
-            duration: duration,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut',
-            onUpdate: () => {
-                this.refreshBody();
-            }
-        });
-    }
-}
-
-// ----------------------------------------------------
-// Interactive Lore Terminal
-// ----------------------------------------------------
-class LoreTerminal extends Phaser.GameObjects.Sprite {
-    constructor(scene, x, y, loreData) {
-        super(scene, x, y, 'terminal_pedestal');
-        scene.add.existing(this);
-        this.loreData = loreData;
-
-        // Floating Prompt Icon
-        this.promptText = scene.add.text(x, y - 32, '[E] ACCESS', {
+        const badgeText = scene.add.text(0, -135, milestoneData.badge, {
             fontFamily: 'monospace',
             fontSize: '11px',
-            color: '#00f0ff',
-            backgroundColor: '#050b14',
-            padding: { x: 4, y: 2 }
+            fontStyle: 'bold',
+            color: '#38bdf8'
         }).setOrigin(0.5);
+        this.add(badgeText);
 
+        // Station Title
+        const titleText = scene.add.text(0, -112, milestoneData.title.split('—')[0].trim(), {
+            fontFamily: '"Chakra Petch", sans-serif',
+            fontSize: '13px',
+            fontStyle: 'bold',
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 2
+        }).setOrigin(0.5);
+        this.add(titleText);
+
+        // Floating Prompt Icon
+        this.promptText = scene.add.text(0, -85, "[CLICK OR SPACE TO READ]", {
+            fontFamily: 'monospace',
+            fontSize: '10px',
+            color: '#fef08a',
+            backgroundColor: '#0f172a',
+            padding: { x: 6, y: 3 }
+        }).setOrigin(0.5);
         this.promptText.setVisible(false);
+        this.add(this.promptText);
 
-        // Gentle hover float tween on prompt
+        // Gentle floating tween for prompt
         scene.tweens.add({
             targets: this.promptText,
-            y: y - 36,
-            duration: 900,
+            y: -89,
+            duration: 1000,
             yoyo: true,
             repeat: -1,
             ease: 'Sine.easeInOut'
+        });
+
+        // Click to open reader
+        badgeBg.setInteractive({ useHandCursor: true });
+        badgeBg.on('pointerdown', () => {
+            scene.openMilestoneModal(this.milestone);
+        });
+        this.pavilionSprite.setInteractive({ useHandCursor: true });
+        this.pavilionSprite.on('pointerdown', () => {
+            scene.openMilestoneModal(this.milestone);
         });
     }
 
     setInRange(inRange) {
         this.promptText.setVisible(inRange);
+        if (inRange && !this.hasVisited) {
+            this.hasVisited = true;
+            window.soundEngine.playStationChime();
+        }
     }
 }
 
-// ----------------------------------------------------
-// Checkpoint Beacon Totem
-// ----------------------------------------------------
-class CheckpointBeacon extends Phaser.GameObjects.Sprite {
-    constructor(scene, x, y, id) {
-        super(scene, x, y, 'checkpoint_off');
-        scene.add.existing(this);
-        this.id = id;
-        this.isActivated = false;
-    }
-
-    activate() {
-        if (this.isActivated) return;
-        this.isActivated = true;
-        this.setTexture('checkpoint_on');
-        window.soundEngine.playCheckpoint();
-
-        // Particle flare
-        this.scene.spawnExplosionParticles(this.x, this.y - 16, 0x00f0ff, 16);
-
-        // Beacon light pillar effect
-        const beam = this.scene.add.rectangle(this.x, this.y - 120, 6, 240, 0x00f0ff, 0.6);
-        this.scene.tweens.add({
-            targets: beam,
-            alpha: 0,
-            scaleX: 3,
-            duration: 800,
-            onComplete: () => beam.destroy()
-        });
-    }
-}
-
-window.Player = Player;
-window.GlitchBug = GlitchBug;
-window.SecurityDrone = SecurityDrone;
-window.MovingPlatform = MovingPlatform;
-window.LoreTerminal = LoreTerminal;
-window.CheckpointBeacon = CheckpointBeacon;
+window.Cyclist = Cyclist;
+window.MilestonePavilion = MilestonePavilion;
